@@ -36,12 +36,21 @@ public class AnalizadorLexico {
             if (c == '{') {
                 avanzar();
             } else if (c == '(') {
+                tokens.put("(", Token.TK_OPAR);
             } else if (c == ')') {
+                tokens.put(")", Token.TK_CPAR);
             } else if (c == ';') {
+                tokens.put(";", Token.TK_COMMA);
             } else if (c == '.') {
+                tokens.put(".", Token.TK_POINT);
             } else if (isWS(c)) {
             }
+            //... etc
+            
+            
+            iniciarAnalisis();
         }
+
     }
 
     /**
