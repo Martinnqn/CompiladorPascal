@@ -9,20 +9,33 @@ import java.util.HashMap;
 
 public class AnalizadorLexico {
 
-    private int pos; //posicion actual del caracter de la linea que se lee
-    private String linea; //linea actual que se esta procesando del archivo de entrada
-    private File program; //archivo de entrada
-    private BufferedReader buffer; //buffer de donde se lee el archivo de entrada
+    /*posicion actual del caracter de la linea que se lee*/
+    private int pos;
+    /*linea actual que se esta procesando del archivo de entrada*/
+    private String linea;
+    /*archivo de entrada*/
+    private File program;
+    /*buffer de donde se lee el archivo de entrada*/
+    private BufferedReader buffer;
     /*HashMap palabras reservadas. <lexema,token>. Si devuelve algo es porque el 
     lexema ingresado es una palabra reservada.*/
     private HashMap<String, String> palabrasReservadas;
     /*Lista de token encontrados*/
     private HashMap<String, String> tokens;
+    /*el lexema que se esta formando actualmente*/
+    private String lexemaEncontrado;
+    /*state mantiene el estado actual referente al lexema que se está encontrando. El estado
+    por defecto es el cero. Si el lexema que se está encontrando empieza con _ o una letra
+    podria ser una palabra reservada o un identificador, y el estado pasa a ser uno.
+    Si el lexema comienza con digito, puede ser un numero y el estado es dos.*/
+    private int state;
 
     public AnalizadorLexico(File prog, HashMap<String, String> palabras) throws IOException {
         program = prog;
         buffer = new BufferedReader(new FileReader(program));
         palabrasReservadas = palabras;
+        state = 0;
+        lexemaEncontrado = "";
     }
 
     public void iniciarAnalisis() throws IOException {
@@ -32,22 +45,53 @@ public class AnalizadorLexico {
         if (linea != null) {
             char c = linea.charAt(pos);
 
-            /*caracter de comentarios*/
+            /*caracter inicio comentario*/
             if (c == '{') {
-                avanzar();
+                automateComment();
             } else if (c == '(') {
+                if (!lexemaEncontrado.equals("")) {
+                    setToken(lexemaEncontrado, state);
+                    state = 0;
+                }
                 tokens.put("(", Token.TK_OPAR);
             } else if (c == ')') {
+                if (!lexemaEncontrado.equals("")) {
+                    setToken(lexemaEncontrado, state);
+                    state = 0;
+                }
                 tokens.put(")", Token.TK_CPAR);
             } else if (c == ';') {
+                if (!lexemaEncontrado.equals("")) {
+                    setToken(lexemaEncontrado, state);
+                    state = 0;
+                }
                 tokens.put(";", Token.TK_COMMA);
             } else if (c == '.') {
+                if (!lexemaEncontrado.equals("")) {
+                    setToken(lexemaEncontrado, state);
+                    state = 0;
+                }
                 tokens.put(".", Token.TK_POINT);
+                //caracteres de espacio en blanco
             } else if (isWS(c)) {
-            }
-            //... etc
-            
-            
+                if (!lexemaEncontrado.equals("")) {
+                    setToken(lexemaEncontrado, state);
+                    state = 0;
+                }
+                //si el caracter es un digito
+            } else if (Character.isDigit(c) && (state == 0 || state == 2)) {
+                state = 2;
+                lexemaEncontrado += c;
+                /*si el caracter es una letra y el estado es cero entonces es el 
+                primer caracter y puede ser un identificador*/
+            } else if ((Character.isLetter(c) || c == '_') && state == 0) {
+                state = 1;
+                lexemaEncontrado += c;
+                /*para el caso del identificador*/
+            } else if ((Character.isLetter(c) || c == '_' || Character.isDigit(c)) && state == 1) {
+                lexemaEncontrado += c;
+            }//else if... else {lanzar error lexico).
+            lexemaEncontrado = "";
             iniciarAnalisis();
         }
 
@@ -68,7 +112,7 @@ public class AnalizadorLexico {
      *
      * @throws IOException
      */
-    private void avanzar() throws IOException {
+    private void automateComment() throws IOException {
         pos++;
         if (linea.length() == pos) {
             linea = buffer.readLine();
@@ -85,6 +129,18 @@ public class AnalizadorLexico {
             en la posicion del caracter que debe leerse en el proximo lexema*/
         if (linea != null) {
             pos++;
+        }
+    }
+
+    /**
+     * Setea el token segun el state.
+     *
+     * @param lexema
+     */
+    private void setToken(String lexema, int state) {
+        String toUp = lexema.toUpperCase();
+        if (state == 0) {
+        } else if (state == 1) {
         }
     }
 
