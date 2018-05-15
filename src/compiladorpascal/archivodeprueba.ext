@@ -1,0 +1,2 @@
+IF (10=a) THEN _b:=25 ELSE c:=TRUE;
+IF (10<=2) THEN f:=1;
