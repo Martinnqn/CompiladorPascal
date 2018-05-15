@@ -12,7 +12,7 @@ public class AnalizadorLexico {
     private static HashMap<String, String> tokensSimbolos = Tokens.generarTokensSimbolos();
     private static HashMap<String, String> tokensPalabras = Tokens.generarTokensPalabras();
 
-    public LinkedList<Token> analizar(File fuente) throws IOException {
+    public static LinkedList<Token> analizar(File fuente) throws IOException {
         LinkedList<Token> tokens = new LinkedList<>();
 
         BufferedReader buffer = new BufferedReader(new FileReader(fuente));
@@ -29,7 +29,7 @@ public class AnalizadorLexico {
             while (pos < linea.length()) {
                 caracter = linea.charAt(pos);
                 if (estado.equals("start")) {
-                    if (tokensSimbolos.containsKey(caracter+"")) {
+                    if (tokensSimbolos.containsKey(caracter + "")) {
                         lexema = caracter + "";
                         estadoSig = "simbol";
                     } else if (Character.isLetter(caracter) || caracter == '_') {
@@ -65,7 +65,7 @@ public class AnalizadorLexico {
                         lexema = lexema + caracter;
                         estadoSig = "letter";
                     } else if (Character.isWhitespace(caracter)
-                            || tokensSimbolos.containsKey(caracter+"")
+                            || tokensSimbolos.containsKey(caracter + "")
                             || caracter == '{') {
                         if (tokensPalabras.containsKey(lexema)) {
                             tokens.add(new Token(tokensPalabras.get(lexema), lexema));
@@ -83,7 +83,7 @@ public class AnalizadorLexico {
                         estadoSig = "digit";
                     } else if (Character.isLetter(caracter) || caracter == '_'
                             || Character.isWhitespace(caracter)
-                            || tokensSimbolos.containsKey(caracter+"")
+                            || tokensSimbolos.containsKey(caracter + "")
                             || caracter == '{') {
                         tokens.add(new Token("TK_INTEGER", lexema));
                         pos--;

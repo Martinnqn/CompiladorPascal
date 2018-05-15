@@ -10,8 +10,7 @@ public class CompiladorPascal {
     public static void main(String[] args) throws IOException {
         //File fuente = new File(args[0]);
         File fuente = new File("src/compiladorpascal/archivodeprueba.ext");
-        AnalizadorLexico lexico = new AnalizadorLexico();
-        LinkedList<Token> tokens = lexico.analizar(fuente);
+        LinkedList<Token> tokens = AnalizadorLexico.analizar(fuente);
         for (Token token : tokens) {
             System.out.print("<" + token.getNombre() + ">");
         }
