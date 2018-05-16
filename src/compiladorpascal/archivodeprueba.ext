@@ -1,2 +1,18 @@
-IF (10=a) THEN _b:=25 ELSE c:=TRUE;
+{IF (10=a) THEN _b:=25 ELSE c:=TRUE;
 IF (10<=2) THEN f:=1;
+
+UN COMENTARIO
+
+}
+
+{IF(10=a%)THEN_b:=25ELSE c:=TRUE;
+
+IF(10<=2)THENf:=1;%}
+
+4<-3
+
+4<-3
+
+;
+
+4<=-42

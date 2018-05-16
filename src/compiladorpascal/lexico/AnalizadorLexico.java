@@ -18,7 +18,7 @@ public class AnalizadorLexico {
         BufferedReader buffer = new BufferedReader(new FileReader(fuente));
         String linea;
         int pos;
-        char caracter;
+        char caracter = '_';
 
         String lexema = "";
         String estado = "start";
@@ -26,8 +26,15 @@ public class AnalizadorLexico {
 
         while ((linea = buffer.readLine()) != null) {
             pos = 0;
-            while (pos < linea.length()) {
-                caracter = linea.charAt(pos);
+            if (!estado.equals("comment")) {
+                estado = "start";
+            }
+            while (pos <= linea.length()) {
+                if (pos != linea.length()) {
+                    caracter = linea.charAt(pos);
+                } else {
+                    caracter = '\n';
+                }
                 if (estado.equals("start")) {
                     if (tokensSimbolos.containsKey(caracter + "")) {
                         lexema = caracter + "";
@@ -52,6 +59,7 @@ public class AnalizadorLexico {
                     } else if (Character.isLetter(caracter) || caracter == '_'
                             || Character.isDigit(caracter)
                             || Character.isWhitespace(caracter)
+                            || tokensSimbolos.containsKey(caracter + "")
                             || caracter == '{') {
                         tokens.add(new Token(tokensSimbolos.get(lexema), lexema));
                         pos--;
