@@ -34,7 +34,7 @@ public class ErrorLexico {
 
     public ErrorLexico(int lin, int p, String desc, String st, String lex, char car) {
         line = lin;
-        pos = p;
+        pos = p + 1; //+1 porque empieza a contar la posicion desde cero
         description = desc;
         state = st;
         lexema = lex;
@@ -66,7 +66,7 @@ public class ErrorLexico {
     }
 
     public String tratamientoSugerido() {
-        String tratamiento = "Error linea " + line + " posicion " + pos + " ";
+        String tratamiento = "Error linea " + line + " posicion " + pos + ". ";
         switch (state) {
             case "symbol":
                 tratamiento += tratamientoSymbol();
@@ -102,10 +102,10 @@ public class ErrorLexico {
         HashMap<String, String> tokensPalabras = Tokens.generarTokensPalabras();
         Iterator<String> keys = tokensPalabras.keySet().iterator();
         boolean stap = false;
-        String key;
-        while ((key = keys.next()) != null && !stap) {
+        String key = "";
+        while (!stap && (key = keys.next()) != null) {
             if (key.length() >= tamLex) {
-                if (key.substring(0, tamLex).equals(lexema)) {
+                if (key.substring(0, tamLex).equals(lexema.toUpperCase())) {
                     stap = true;
                 }
             }

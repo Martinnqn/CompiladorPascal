@@ -15,3 +15,10 @@ IF(10<=2)THENf:=1;%}
 ;
 
 4<=-42
+
+IF%(10<=2) THEN 
+    Whi`e(true) then
+    break;
+    end;
+end;
+end.

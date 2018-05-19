@@ -15,11 +15,16 @@ public class CompiladorPascal {
         LinkedList<ErrorLexico> errores = lexico.getErroresLexicos();
 
         for (ErrorLexico error : errores) {
-            System.out.print(error.tratamientoSugerido());
+            System.out.println(error.tratamientoSugerido());
         }
 
+        int i = 1;
         for (Token token : tokens) {
             System.out.print("<" + token.getNombre() + ">");
+            if (i % 6 == 0) {
+                System.out.println("");
+            }
+            i++;
         }
         System.out.println();
         for (Token token : tokens) {

@@ -62,6 +62,8 @@ public class AnalizadorLexico {
                         System.err.println("Caracter '" + caracter + "' desconocido en estado 'start'.");
                         errores.add(new ErrorLexico(nroLinea, pos, "Caracter desconocido",
                                 estado, lexema, caracter));
+                        lexema = "";
+                        estadoSig = "start";
                     }
                 } else if (estado.equals("symbol")) {
                     if (tokensSimbolos.containsKey(lexema + caracter)) {
@@ -76,9 +78,11 @@ public class AnalizadorLexico {
                         pos--;
                         estadoSig = "start";
                     } else {
-                        System.err.println("Caracter '" + caracter + "' desconocido en estado 'symbol'.");
+//                        System.err.println("Caracter '" + caracter + "' desconocido en estado 'symbol'.");
                         errores.add(new ErrorLexico(nroLinea, pos, "Caracter no esperado en expresión booleana",
                                 estado, lexema, caracter));
+                        lexema = "";
+                        estadoSig = "start";
                     }
                 } else if (estado.equals("letter")) {
                     if (Character.isLetter(caracter) || caracter == '_'
@@ -88,17 +92,19 @@ public class AnalizadorLexico {
                     } else if (Character.isWhitespace(caracter)
                             || tokensSimbolos.containsKey(caracter + "")
                             || caracter == '{') {
-                        if (tokensPalabras.containsKey(lexema)) {
-                            tokens.add(new Token(tokensPalabras.get(lexema), lexema));
+                        if (tokensPalabras.containsKey(lexema.toUpperCase())) {
+                            tokens.add(new Token(tokensPalabras.get(lexema.toUpperCase()), lexema));
                         } else {
                             tokens.add(new Token("TK_ID", lexema));
                         }
                         pos--;
                         estadoSig = "start";
                     } else {
-                        System.err.println("Caracter '" + caracter + "' desconocido en estado 'letter'.");
+//                        System.err.println("Caracter '" + caracter + "' desconocido en estado 'letter'.");
                         errores.add(new ErrorLexico(nroLinea, pos, "Caracter no esperado",
                                 estado, lexema, caracter));
+                        lexema = "";
+                        estadoSig = "start";
                     }
                 } else if (estado.equals("digit")) {
                     if (Character.isDigit(caracter)) {
@@ -111,9 +117,11 @@ public class AnalizadorLexico {
                         pos--;
                         estadoSig = "start";
                     } else {
-                        System.err.println("Caracter '" + caracter + "' desconocido en estado 'digit'.");
+//                        System.err.println("Caracter '" + caracter + "' desconocido en estado 'digit'.");
                         errores.add(new ErrorLexico(nroLinea, pos, "Caracter no esperado en numero entero",
                                 estado, lexema, caracter));
+                        lexema = "";
+                        estadoSig = "start";
                     }
                 } else if (estado.equals("comment")) {
                     if (caracter != '}') {
