@@ -11,7 +11,7 @@ public class AnalizadorLexico {
 
     private HashMap<String, String> tokensSimbolos;
     private HashMap<String, String> tokensPalabras;
-    private LinkedList<ErroresLexicos> errores;
+    private LinkedList<ErrorLexico> errores;
 
     public AnalizadorLexico() {
         tokensSimbolos = Tokens.generarTokensSimbolos();
@@ -60,7 +60,7 @@ public class AnalizadorLexico {
                         estadoSig = "comment";
                     } else {
                         System.err.println("Caracter '" + caracter + "' desconocido en estado 'start'.");
-                        errores.add(new ErroresLexicos(nroLinea, pos, "Caracter desconocido",
+                        errores.add(new ErrorLexico(nroLinea, pos, "Caracter desconocido",
                                 estado, lexema, caracter));
                     }
                 } else if (estado.equals("symbol")) {
@@ -77,7 +77,7 @@ public class AnalizadorLexico {
                         estadoSig = "start";
                     } else {
                         System.err.println("Caracter '" + caracter + "' desconocido en estado 'symbol'.");
-                        errores.add(new ErroresLexicos(nroLinea, pos, "Caracter no esperado en expresión booleana",
+                        errores.add(new ErrorLexico(nroLinea, pos, "Caracter no esperado en expresión booleana",
                                 estado, lexema, caracter));
                     }
                 } else if (estado.equals("letter")) {
@@ -97,15 +97,14 @@ public class AnalizadorLexico {
                         estadoSig = "start";
                     } else {
                         System.err.println("Caracter '" + caracter + "' desconocido en estado 'letter'.");
-                        errores.add(new ErroresLexicos(nroLinea, pos, "Caracter no esperado",
+                        errores.add(new ErrorLexico(nroLinea, pos, "Caracter no esperado",
                                 estado, lexema, caracter));
                     }
                 } else if (estado.equals("digit")) {
                     if (Character.isDigit(caracter)) {
                         lexema = lexema + caracter;
                         estadoSig = "digit";
-                    } else if (Character.isLetter(caracter) || caracter == '_' //porque corta con _
-                            || Character.isWhitespace(caracter)
+                    } else if (Character.isWhitespace(caracter)
                             || tokensSimbolos.containsKey(caracter + "")
                             || caracter == '{') {
                         tokens.add(new Token("TK_INTEGER", lexema));
@@ -113,7 +112,7 @@ public class AnalizadorLexico {
                         estadoSig = "start";
                     } else {
                         System.err.println("Caracter '" + caracter + "' desconocido en estado 'digit'.");
-                        errores.add(new ErroresLexicos(nroLinea, pos, "Caracter no esperado en numero entero",
+                        errores.add(new ErrorLexico(nroLinea, pos, "Caracter no esperado en numero entero",
                                 estado, lexema, caracter));
                     }
                 } else if (estado.equals("comment")) {
@@ -130,7 +129,7 @@ public class AnalizadorLexico {
         return tokens;
     }
 
-    public LinkedList<ErroresLexicos> getErroresLexicos() {
+    public LinkedList<ErrorLexico> getErroresLexicos() {
         return errores;
     }
 

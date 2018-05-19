@@ -12,9 +12,9 @@ public class CompiladorPascal {
         File fuente = new File("src/compiladorpascal/archivodeprueba.ext");
         AnalizadorLexico lexico = new AnalizadorLexico();
         LinkedList<Token> tokens = lexico.analizar(fuente);
-        LinkedList<ErroresLexicos> errores = lexico.getErroresLexicos();
+        LinkedList<ErrorLexico> errores = lexico.getErroresLexicos();
 
-        for (ErroresLexicos error : errores) {
+        for (ErrorLexico error : errores) {
             System.out.print(error.tratamientoSugerido());
         }
 

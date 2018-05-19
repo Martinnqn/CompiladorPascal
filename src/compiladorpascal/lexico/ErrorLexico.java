@@ -15,7 +15,7 @@ import java.util.Set;
  *
  * @author Martin
  */
-public class ErroresLexicos {
+public class ErrorLexico {
 
     private int line;
     private int pos;
@@ -32,7 +32,7 @@ public class ErroresLexicos {
         this.state = state;
     }
 
-    public ErroresLexicos(int lin, int p, String desc, String st, String lex, char car) {
+    public ErrorLexico(int lin, int p, String desc, String st, String lex, char car) {
         line = lin;
         pos = p;
         description = desc;
@@ -120,7 +120,7 @@ public class ErroresLexicos {
 
     private String tratamientoDigit() {
         String res = "Esperaba la formación de un literal Integer, pero encontrado caracter "
-                + "" + caracterCorte + " no permitido.";
+                + "'" + caracterCorte + "' no permitido.";
         return res;
     }
 }
