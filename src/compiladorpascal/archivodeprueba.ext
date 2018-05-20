@@ -19,6 +19,7 @@ IF(10<=2)THENf:=1;%}
 IF%(10<=2) THEN 
     Whi`e(true) then
     break;
+    Whi'lliTrue:=false;
     end;
 end;
 end.

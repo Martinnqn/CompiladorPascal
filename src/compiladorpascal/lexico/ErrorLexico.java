@@ -7,9 +7,6 @@ package compiladorpascal.lexico;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
 
 /**
  *
@@ -19,7 +16,6 @@ public class ErrorLexico {
 
     private int line;
     private int pos;
-    private String description;
     private String state;
     private String lexema;
     private char caracterCorte;
@@ -32,10 +28,9 @@ public class ErrorLexico {
         this.state = state;
     }
 
-    public ErrorLexico(int lin, int p, String desc, String st, String lex, char car) {
+    public ErrorLexico(int lin, int p, String st, String lex, char car) {
         line = lin;
         pos = p + 1; //+1 porque empieza a contar la posicion desde cero
-        description = desc;
         state = st;
         lexema = lex;
         caracterCorte = car;
@@ -55,14 +50,6 @@ public class ErrorLexico {
 
     public void setPos(int pos) {
         this.pos = pos;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public String tratamientoSugerido() {
@@ -87,7 +74,8 @@ public class ErrorLexico {
     }
 
     private String tratamientoSymbol() {
-        String res = "Esperado: Variable o Literal, pero encontrado " + caracterCorte;
+        String res;
+        res = "Esperado: Variable o Literal, pero encontrado " + caracterCorte;
         return res;
     }
 
@@ -103,7 +91,8 @@ public class ErrorLexico {
         Iterator<String> keys = tokensPalabras.keySet().iterator();
         boolean stap = false;
         String key = "";
-        while (!stap && (key = keys.next()) != null) {
+        while (!stap && keys.hasNext()) {
+            key = keys.next();
             if (key.length() >= tamLex) {
                 if (key.substring(0, tamLex).equals(lexema.toUpperCase())) {
                     stap = true;

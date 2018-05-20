@@ -60,8 +60,7 @@ public class AnalizadorLexico {
                         estadoSig = "comment";
                     } else {
                         System.err.println("Caracter '" + caracter + "' desconocido en estado 'start'.");
-                        errores.add(new ErrorLexico(nroLinea, pos, "Caracter desconocido",
-                                estado, lexema, caracter));
+                        errores.add(new ErrorLexico(nroLinea, pos, estado, lexema, caracter));
                         lexema = "";
                         estadoSig = "start";
                     }
@@ -79,8 +78,7 @@ public class AnalizadorLexico {
                         estadoSig = "start";
                     } else {
 //                        System.err.println("Caracter '" + caracter + "' desconocido en estado 'symbol'.");
-                        errores.add(new ErrorLexico(nroLinea, pos, "Caracter no esperado en expresión booleana",
-                                estado, lexema, caracter));
+                        errores.add(new ErrorLexico(nroLinea, pos, estado, lexema, caracter));
                         lexema = "";
                         estadoSig = "start";
                     }
@@ -101,8 +99,7 @@ public class AnalizadorLexico {
                         estadoSig = "start";
                     } else {
 //                        System.err.println("Caracter '" + caracter + "' desconocido en estado 'letter'.");
-                        errores.add(new ErrorLexico(nroLinea, pos, "Caracter no esperado",
-                                estado, lexema, caracter));
+                        errores.add(new ErrorLexico(nroLinea, pos, estado, lexema, caracter));
                         lexema = "";
                         estadoSig = "start";
                     }
@@ -118,8 +115,7 @@ public class AnalizadorLexico {
                         estadoSig = "start";
                     } else {
 //                        System.err.println("Caracter '" + caracter + "' desconocido en estado 'digit'.");
-                        errores.add(new ErrorLexico(nroLinea, pos, "Caracter no esperado en numero entero",
-                                estado, lexema, caracter));
+                        errores.add(new ErrorLexico(nroLinea, pos, estado, lexema, caracter));
                         lexema = "";
                         estadoSig = "start";
                     }
