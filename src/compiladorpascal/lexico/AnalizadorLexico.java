@@ -9,36 +9,30 @@ import java.util.LinkedList;
 
 public class AnalizadorLexico {
 
-    private HashMap<String, String> tokensSimbolos;
-    private HashMap<String, String> tokensPalabras;
-    private LinkedList<ErrorLexico> errores;
+    private static final HashMap<String, String> tokensSimbolos = Tokens.generarTokensSimbolos();
+    private static final HashMap<String, String> tokensPalabras = Tokens.generarTokensPalabras();
 
-    public AnalizadorLexico() {
-        tokensSimbolos = Tokens.generarTokensSimbolos();
-        tokensPalabras = Tokens.generarTokensPalabras();
-        errores = new LinkedList<>();
-    }
-
-    public LinkedList<Token> analizar(File fuente) throws IOException {
+    public static LinkedList<Token> analizar(File fuente) throws IOException {
         LinkedList<Token> tokens = new LinkedList<>();
 
         BufferedReader buffer = new BufferedReader(new FileReader(fuente));
         String linea;
         int pos;
-        int nroLinea = 0;
-        char caracter = '_';
+        int nroLinea = 1;
+        char caracter;
 
         String lexema = "";
         String estado = "start";
         String estadoSig = "";
 
-        while ((linea = buffer.readLine()) != null) {
-            nroLinea++;
+        boolean error = false;
+
+        while ((linea = buffer.readLine()) != null && !error) {
             pos = 0;
             if (!estado.equals("comment")) {
                 estado = "start";
             }
-            while (pos <= linea.length()) {
+            while (pos <= linea.length() && !error) {
                 if (pos != linea.length()) {
                     caracter = linea.charAt(pos);
                 } else {
@@ -59,10 +53,10 @@ public class AnalizadorLexico {
                     } else if (caracter == '{') {
                         estadoSig = "comment";
                     } else {
-                        System.err.println("Caracter '" + caracter + "' desconocido en estado 'start'.");
-                        errores.add(new ErrorLexico(nroLinea, pos, estado, lexema, caracter));
+                        System.err.println("Error linea " + nroLinea + " posicion " + (pos + 1) + ". Caracter '" + caracter + "' desconocido.");
                         lexema = "";
                         estadoSig = "start";
+                        error = true;
                     }
                 } else if (estado.equals("symbol")) {
                     if (tokensSimbolos.containsKey(lexema + caracter)) {
@@ -77,10 +71,10 @@ public class AnalizadorLexico {
                         pos--;
                         estadoSig = "start";
                     } else {
-//                        System.err.println("Caracter '" + caracter + "' desconocido en estado 'symbol'.");
-                        errores.add(new ErrorLexico(nroLinea, pos, estado, lexema, caracter));
+                        System.err.println("Error linea " + nroLinea + " posicion " + (pos + 1) + ". Caracter '" + caracter + "' desconocido.");
                         lexema = "";
                         estadoSig = "start";
+                        error = true;
                     }
                 } else if (estado.equals("letter")) {
                     if (Character.isLetter(caracter) || caracter == '_'
@@ -98,10 +92,10 @@ public class AnalizadorLexico {
                         pos--;
                         estadoSig = "start";
                     } else {
-//                        System.err.println("Caracter '" + caracter + "' desconocido en estado 'letter'.");
-                        errores.add(new ErrorLexico(nroLinea, pos, estado, lexema, caracter));
+                        System.err.println("Error linea " + nroLinea + " posicion " + (pos + 1) + ". Caracter '" + caracter + "' desconocido.");
                         lexema = "";
                         estadoSig = "start";
+                        error = true;
                     }
                 } else if (estado.equals("digit")) {
                     if (Character.isDigit(caracter)) {
@@ -109,15 +103,16 @@ public class AnalizadorLexico {
                         estadoSig = "digit";
                     } else if (Character.isWhitespace(caracter)
                             || tokensSimbolos.containsKey(caracter + "")
-                            || caracter == '{') {
+                            || caracter == '{'
+                            || Character.isLetter(caracter) || caracter == '_') {
                         tokens.add(new Token("TK_INTEGER", lexema));
                         pos--;
                         estadoSig = "start";
                     } else {
-//                        System.err.println("Caracter '" + caracter + "' desconocido en estado 'digit'.");
-                        errores.add(new ErrorLexico(nroLinea, pos, estado, lexema, caracter));
+                        System.err.println("Error linea " + nroLinea + " posicion " + (pos + 1) + ". Caracter '" + caracter + "' desconocido.");
                         lexema = "";
                         estadoSig = "start";
+                        error = true;
                     }
                 } else if (estado.equals("comment")) {
                     if (caracter != '}') {
@@ -129,12 +124,12 @@ public class AnalizadorLexico {
                 estado = estadoSig;
                 pos++;
             }
+            nroLinea++;
+        }
+        if (estado.equals("comment")) {
+            System.err.println("Error fin de comentario no encontrado.");
         }
         return tokens;
-    }
-
-    public LinkedList<ErrorLexico> getErroresLexicos() {
-        return errores;
     }
 
 }

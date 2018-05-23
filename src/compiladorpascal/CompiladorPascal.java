@@ -8,15 +8,9 @@ import java.util.LinkedList;
 public class CompiladorPascal {
 
     public static void main(String[] args) throws IOException {
-        //File fuente = new File(args[0]);
-        File fuente = new File("src/compiladorpascal/archivodeprueba.ext");
-        AnalizadorLexico lexico = new AnalizadorLexico();
-        LinkedList<Token> tokens = lexico.analizar(fuente);
-        LinkedList<ErrorLexico> errores = lexico.getErroresLexicos();
-
-        for (ErrorLexico error : errores) {
-            System.out.println(error.tratamientoSugerido());
-        }
+        File fuente = new File(args[0]);
+        //File fuente = new File("src/compiladorpascal/archivodeprueba.ext");
+        LinkedList<Token> tokens = AnalizadorLexico.analizar(fuente);
 
         int i = 1;
         for (Token token : tokens) {
