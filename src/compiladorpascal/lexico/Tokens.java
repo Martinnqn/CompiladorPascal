@@ -2,8 +2,19 @@ package compiladorpascal.lexico;
 
 import java.util.HashMap;
 
+/**
+ * Generador de conjuntos de tokens del lenguaje Pascal.
+ *
+ * @author Martin Bermudez y Giuliano Marinelli
+ */
 public class Tokens {
 
+    /**
+     * Genera un HashMap que asocia los simbolos operacionales de Pascal del
+     * lenguaje con sus respectivos token.
+     *
+     * @return HashMap (patrón, token)
+     */
     public static HashMap<String, String> generarTokensSimbolos() {
         HashMap<String, String> tokens = new HashMap<>();
         tokens.put(":=", "TK_ASSIGN");
@@ -26,6 +37,12 @@ public class Tokens {
         return tokens;
     }
 
+    /**
+     * Genera un HashMap que asocia las palabras reservadas del lenguaje Pascal
+     * con sus respectivos token.
+     *
+     * @return HashMap (patrón, token)
+     */
     public static HashMap<String, String> generarTokensPalabras() {
         HashMap<String, String> tokens = new HashMap<>();
         tokens.put("INTEGER", "TK_TYPE_INT");
