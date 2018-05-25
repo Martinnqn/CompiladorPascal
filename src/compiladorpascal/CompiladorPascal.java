@@ -17,27 +17,31 @@ public class CompiladorPascal {
      * @throws IOException
      */
     public static void main(String[] args) throws IOException {
-        File fuente = new File(args[0]);
+        if (args.length != 1) {
+            System.out.println("Falta indicar el archivo de entrada");
+        } else {
+            File fuente = new File(args[0]);
 
-        //prueba con archivodeprueba.ext
-        //File fuente = new File("src/compiladorpascal/archivodeprueba.ext");
-        //llamada al anlizador léxico que retornará una lista de tokens
-        LinkedList<Token> tokens = AnalizadorLexico.analizar(fuente);
+            //prueba con archivodeprueba.ext
+            //File fuente = new File("src/compiladorpascal/archivodeprueba.ext");
+            //llamada al anlizador léxico que retornará una lista de tokens
+            LinkedList<Token> tokens = AnalizadorLexico.analizar(fuente);
 
-        //muestra los tokens devueltos
-        int i = 1;
-        for (Token token : tokens) {
-            System.out.print("<" + token.getNombre() + ">");
-            if (i % 6 == 0) {
-                System.out.println("");
+            //muestra los tokens devueltos
+            int i = 1;
+            for (Token token : tokens) {
+                System.out.print("<" + token.getNombre() + ">");
+                if (i % 6 == 0) {
+                    System.out.println("");
+                }
+                i++;
             }
-            i++;
-        }
-        System.out.println();
+            System.out.println();
 
-        //muestra el código recreado a partir de los tokens
-        for (Token token : tokens) {
-            System.out.print(token.getValor() + " ");
+            //muestra el código recreado a partir de los tokens
+            for (Token token : tokens) {
+                System.out.print(token.getValor() + " ");
+            }
         }
     }
 
