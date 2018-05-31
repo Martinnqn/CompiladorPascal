@@ -3,7 +3,6 @@ package compiladorpascal;
 import compiladorpascal.lexico.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedList;
 
 /**
  *
@@ -21,26 +20,17 @@ public class CompiladorPascal {
             System.out.println("Falta indicar el archivo de entrada");
         } else {
             File fuente = new File(args[0]);
-
             //prueba con archivodeprueba.ext
-            //File fuente = new File("src/compiladorpascal/archivodeprueba.ext");
-            //llamada al anlizador léxico que retornará una lista de tokens
-            LinkedList<Token> tokens = AnalizadorLexico.analizar(fuente);
+            //File fuente = new File("src/compiladorpascal/files/archivodeprueba.ext");
 
-            //muestra los tokens devueltos
-            int i = 1;
-            for (Token token : tokens) {
-                System.out.print("<" + token.getNombre() + ">");
-                if (i % 6 == 0) {
-                    System.out.println("");
-                }
-                i++;
-            }
-            System.out.println();
+            //crea un objeto de analizador léxico
+            AnalizadorLexico lexico = new AnalizadorLexico(fuente);
 
-            //muestra el código recreado a partir de los tokens
-            for (Token token : tokens) {
-                System.out.print(token.getValor() + " ");
+            //imprime los token que va obteniendo del analizador léxico
+            Token token;
+            while ((token = lexico.tokenSiguiente()) != null) {
+                System.out.print("<" + token.getNombre() + "|" + token.getValor() + "> ");
+                //System.out.print("<\033[32m" + token.getNombre() + "\033[30m|\033[36m" + token.getValor() + "\033[30m>");
             }
         }
     }

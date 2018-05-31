@@ -63,6 +63,8 @@ public class Tokens {
         tokens.put("VAR", "TK_VAR");
         tokens.put("PROCEDURE", "TK_PROCEDURE");
         tokens.put("FUNCTION", "TK_FUNCTION");
+        tokens.put("READ", "TK_READ");
+        tokens.put("WRITE", "TK_WRITE");
         return tokens;
     }
 
