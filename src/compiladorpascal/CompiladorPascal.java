@@ -1,6 +1,7 @@
 package compiladorpascal;
 
 import compiladorpascal.lexico.*;
+import compiladorpascal.sintactico.AnalizadorSintactico;
 import java.io.File;
 import java.io.IOException;
 
@@ -27,11 +28,14 @@ public class CompiladorPascal {
             AnalizadorLexico lexico = new AnalizadorLexico(fuente);
 
             //imprime los token que va obteniendo del analizador léxico
-            Token token;
+            /*Token token;
             while ((token = lexico.tokenSiguiente()) != null) {
                 System.out.print("<" + token.getNombre() + "|" + token.getValor() + "> ");
                 //System.out.print("<\033[32m" + token.getNombre() + "\033[30m|\033[36m" + token.getValor() + "\033[30m>");
-            }
+            }*/
+            
+            AnalizadorSintactico sintactico = new AnalizadorSintactico(lexico);
+            sintactico.program();
         }
     }
 
