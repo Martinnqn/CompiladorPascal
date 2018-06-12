@@ -20,9 +20,9 @@ public class CompiladorPascal {
         if (args.length != 1) {
             System.out.println("Falta indicar el archivo de entrada");
         } else {
-            File fuente = new File(args[0]);
+            //File fuente = new File(args[0]);
             //prueba con archivodeprueba.ext
-            //File fuente = new File("src/compiladorpascal/files/archivodeprueba.ext");
+            File fuente = new File("src/compiladorpascal/files/archivodeprueba.ext");
 
             //crea un objeto de analizador léxico
             AnalizadorLexico lexico = new AnalizadorLexico(fuente);

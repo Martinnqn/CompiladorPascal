@@ -1,9 +1,11 @@
-Program Example1;
-Var       
-    Num1, Num2, Sum : Integer;
-    Result: Boolean;
-Begin {no semicolon}
-	Sum := Num1 + Num2;
-        if (Num1 > Num2) then
-            Result := true
-End.
+Program digitos;
+VAR x:INTEGER;
+BEGIN
+    x:=0;
+    ClrScr;
+    WHILE X <= 10 DO
+    BEGIN
+        WRITELN (x);
+        x:=x+1
+    END
+END.
