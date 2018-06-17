@@ -23,6 +23,9 @@ public class CompiladorPascal {
             //File fuente = new File(args[0]);
             //prueba con archivodeprueba.ext
             File fuente = new File("src/compiladorpascal/files/archivodeprueba.ext");
+            //File fuente = new File("src/compiladorpascal/files/ejemplo1.ext");
+            //File fuente = new File("src/compiladorpascal/files/ejemplo2.ext");
+            //File fuente = new File("src/compiladorpascal/files/ejemplo3.ext");
 
             //crea un objeto de analizador léxico
             AnalizadorLexico lexico = new AnalizadorLexico(fuente);
@@ -33,7 +36,6 @@ public class CompiladorPascal {
                 System.out.print("<" + token.getNombre() + "|" + token.getValor() + "> ");
                 //System.out.print("<\033[32m" + token.getNombre() + "\033[30m|\033[36m" + token.getValor() + "\033[30m>");
             }*/
-            
             AnalizadorSintactico sintactico = new AnalizadorSintactico(lexico);
             sintactico.program();
         }

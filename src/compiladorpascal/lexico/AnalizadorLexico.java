@@ -91,10 +91,7 @@ public class AnalizadorLexico {
                         } else if (caracter == '{') {
                             estadoSig = "comment";
                         } else {//error: un símbolo fuera del alfabeto
-                            System.out.println("Error linea " + nroLinea + " posicion " + (pos + 1) + ". Caracter '" + caracter + "' desconocido.");
-                            lexema = "";
-                            estadoSig = "start";
-                            error = true;
+                            error();
                         }
                     } else if (estado.equals("symbol")) {/*en este estado el lexema 
                     formado hasta el momento tiene uno o mas simbolos 
@@ -116,10 +113,7 @@ public class AnalizadorLexico {
                             pos--;
                             estadoSig = "start";
                         } else {//error: un símbolo fuera del alfabeto
-                            System.out.println("Error linea " + nroLinea + " posicion " + (pos + 1) + ". Caracter '" + caracter + "' desconocido.");
-                            lexema = "";
-                            estadoSig = "start";
-                            error = true;
+                            error();
                         }
                     } else if (estado.equals("letter")) {/*en este estado el lexema
                     formado hasta el momento tiene una o mas letras o 
@@ -146,10 +140,7 @@ public class AnalizadorLexico {
                             pos--;
                             estadoSig = "start";
                         } else {//error: un símbolo fuera del alfabeto
-                            System.out.println("Error linea " + nroLinea + " posicion " + (pos + 1) + ". Caracter '" + caracter + "' desconocido.");
-                            lexema = "";
-                            estadoSig = "start";
-                            error = true;
+                            error();
                         }
                     } else if (estado.equals("digit")) {/*en este estado el lexema
                     formado hasta el momento tiene uno o mas dígitos numéricos*/
@@ -168,10 +159,7 @@ public class AnalizadorLexico {
                             pos--;
                             estadoSig = "start";
                         } else {//error: un símbolo fuera del alfabeto
-                            System.out.println("Error linea " + nroLinea + " posicion " + (pos + 1) + ". Caracter '" + caracter + "' desconocido.");
-                            lexema = "";
-                            estadoSig = "start";
-                            error = true;
+                            error();
                         }
                     } else if (estado.equals("comment")) {/*este estado indica que
                     se encontró un caracter de apertura de comentario. 
@@ -199,13 +187,25 @@ public class AnalizadorLexico {
                 }
             }
             if (estado.equals("comment")) {//error: un comentario sin cerrar
-                System.out.println("Error fin de comentario no encontrado.");
+                throw new RuntimeException("fin comentario");
             }
         } catch (IOException ex) {
-            System.err.println("Error de lectura.");
+            System.out.println("\nError de lectura.");
+        } catch (RuntimeException ex) {
+            error = true;
+            if (ex.getMessage().equals("simbolo desconocido")) {
+                System.out.println("\nError lexico: linea " + nroLinea + " posicion " + (pos + 1) + ".");
+                System.out.println("Caracter '" + caracter + "'  desconocido.");
+            } else if (ex.getMessage().equals("fin comentario")) {
+                System.out.println("\nError lexico: fin de comentario no encontrado.");
+            }
         }
         //System.out.print("\033[30m");
         return token;
+    }
+
+    private void error() {
+        throw new RuntimeException("simbolo desconocido");
     }
 
     public int getPos() {
@@ -214,6 +214,10 @@ public class AnalizadorLexico {
 
     public int getNroLinea() {
         return nroLinea;
+    }
+
+    public boolean isError() {
+        return error;
     }
 
 }
