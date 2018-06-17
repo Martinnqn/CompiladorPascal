@@ -20,9 +20,9 @@ public class CompiladorPascal {
         if (args.length != 1) {
             System.out.println("Falta indicar el archivo de entrada");
         } else {
-            //File fuente = new File(args[0]);
-            //prueba con archivodeprueba.ext
-            File fuente = new File("src/compiladorpascal/files/archivodeprueba.ext");
+            File fuente = new File(args[0]);
+            //pruebas con *.ext
+            //File fuente = new File("src/compiladorpascal/files/archivodeprueba.ext");
             //File fuente = new File("src/compiladorpascal/files/ejemplo1.ext");
             //File fuente = new File("src/compiladorpascal/files/ejemplo2.ext");
             //File fuente = new File("src/compiladorpascal/files/ejemplo3.ext");
