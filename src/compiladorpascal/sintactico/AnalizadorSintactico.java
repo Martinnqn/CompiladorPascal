@@ -34,9 +34,13 @@ public class AnalizadorSintactico {
 
     public void program() {
         try {
-            program_heading();
-            block();
-            match("TK_POINT");
+            if (preanalisis.getNombre().equals("TK_PROGRAM")) {
+                program_heading();
+                block();
+                match("TK_POINT");
+            } else {
+                error();
+            }
         } catch (RuntimeException ex) {
             if (ex.getMessage().equals("sintactico")) {
                 System.out.println("\nError sintactico: linea " + lexico.getNroLinea() + " posicion " + (lexico.getPos() + 1) + ".");
@@ -46,9 +50,13 @@ public class AnalizadorSintactico {
     }
 
     private void program_heading() {
-        match("TK_PROGRAM");
-        identifier();
-        match("TK_ENDSTNC");
+        if (preanalisis.getNombre().equals("TK_PROGRAM")) {
+            match("TK_PROGRAM");
+            identifier();
+            match("TK_ENDSTNC");
+        } else {
+            error();
+        }
     }
 
     private void block() {
@@ -94,14 +102,22 @@ public class AnalizadorSintactico {
     }
 
     private void variable_declaration_block() {
-        match("TK_VAR");
-        variable_declaration_list();
+        if (preanalisis.getNombre().equals("TK_VAR")) {
+            match("TK_VAR");
+            variable_declaration_list();
+        } else {
+            error();
+        }
     }
 
     private void variable_declaration_list() {
-        variable_declaration();
-        match("TK_ENDSTNC");
-        variable_declaration_list_1();
+        if (preanalisis.getNombre().equals("TK_ID")) {
+            variable_declaration();
+            match("TK_ENDSTNC");
+            variable_declaration_list_1();
+        } else {
+            error();
+        }
     }
 
     private void variable_declaration_list_1() {
@@ -111,9 +127,13 @@ public class AnalizadorSintactico {
     }
 
     private void variable_declaration() {
-        identifier_list();
-        match("TK_TPOINTS");
-        type();
+        if (preanalisis.getNombre().equals("TK_ID")) {
+            identifier_list();
+            match("TK_TPOINTS");
+            type();
+        } else {
+            error();
+        }
     }
 
     private void procedure_and_function_declaration_list() {
@@ -144,29 +164,45 @@ public class AnalizadorSintactico {
     }
 
     private void procedure_declaration() {
-        procedure_heading();
-        match("TK_ENDSTNC");
-        block();
+        if (preanalisis.getNombre().equals("TK_PROCEDURE")) {
+            procedure_heading();
+            match("TK_ENDSTNC");
+            block();
+        } else {
+            error();
+        }
     }
 
     private void procedure_heading() {
-        match("TK_PROCEDURE");
-        identifier();
-        parameters();
+        if (preanalisis.getNombre().equals("TK_PROCEDURE")) {
+            match("TK_PROCEDURE");
+            identifier();
+            parameters();
+        } else {
+            error();
+        }
     }
 
     private void function_declaration() {
-        function_heading();
-        match("TK_ENDSTNC");
-        block();
+        if (preanalisis.getNombre().equals("TK_FUNCTION")) {
+            function_heading();
+            match("TK_ENDSTNC");
+            block();
+        } else {
+            error();
+        }
     }
 
     private void function_heading() {
-        match("TK_FUNCTION");
-        identifier();
-        parameters();
-        match("TK_TPOINTS");
-        type();
+        if (preanalisis.getNombre().equals("TK_FUNCTION")) {
+            match("TK_FUNCTION");
+            identifier();
+            parameters();
+            match("TK_TPOINTS");
+            type();
+        } else {
+            error();
+        }
     }
 
     private void parameters() {
@@ -184,8 +220,12 @@ public class AnalizadorSintactico {
     }
 
     private void parameter_declaration_list() {
-        parameter_declaration();
-        parameter_declaration_list_1();
+        if (preanalisis.getNombre().equals("TK_ID")) {
+            parameter_declaration();
+            parameter_declaration_list_1();
+        } else {
+            error();
+        }
     }
 
     private void parameter_declaration_list_1() {
@@ -196,9 +236,13 @@ public class AnalizadorSintactico {
     }
 
     private void parameter_declaration() {
-        identifier_list();
-        match("TK_TPOINTS");
-        type();
+        if (preanalisis.getNombre().equals("TK_ID")) {
+            identifier_list();
+            match("TK_TPOINTS");
+            type();
+        } else {
+            error();
+        }
     }
 
     private void statement_block() {
@@ -217,14 +261,29 @@ public class AnalizadorSintactico {
     }
 
     private void multiple_statement() {
-        match("TK_BEGIN");
-        statement_list();
-        match("TK_END");
+        if (preanalisis.getNombre().equals("TK_BEGIN")) {
+            match("TK_BEGIN");
+            statement_list();
+            match("TK_END");
+        } else {
+            error();
+        }
     }
 
     private void statement_list() {
-        statement();
-        statement_list_1();
+        switch (preanalisis.getNombre()) {
+            case "TK_ID":
+            case "TK_WRITE":
+            case "TK_READ":
+            case "TK_IF":
+            case "TK_WHILE":
+                statement();
+                statement_list_1();
+                break;
+            default:
+                error();
+                break;
+        }
     }
 
     private void statement_list_1() {
@@ -297,14 +356,22 @@ public class AnalizadorSintactico {
     }
 
     private void assignment_statement() {
-        match("TK_ASSIGN");
-        expression_or();
+        if (preanalisis.getNombre().equals("TK_ASSIGN")) {
+            match("TK_ASSIGN");
+            expression_or();
+        } else {
+            error();
+        }
     }
 
     private void call_procedure_or_function() {
-        match("TK_OPAR");
-        call_procedure_or_function_1();
-        match("TK_CPAR");
+        if (preanalisis.getNombre().equals("TK_OPAR")) {
+            match("TK_OPAR");
+            call_procedure_or_function_1();
+            match("TK_CPAR");
+        } else {
+            error();
+        }
     }
 
     private void call_procedure_or_function_1() {
@@ -322,11 +389,15 @@ public class AnalizadorSintactico {
     }
 
     private void conditional_statement() {
-        match("TK_IF");
-        expression_or();
-        match("TK_THEN");
-        statement_block();
-        else_statement();
+        if (preanalisis.getNombre().equals("TK_IF")) {
+            match("TK_IF");
+            expression_or();
+            match("TK_THEN");
+            statement_block();
+            else_statement();
+        } else {
+            error();
+        }
     }
 
     private void else_statement() {
@@ -337,15 +408,32 @@ public class AnalizadorSintactico {
     }
 
     private void repetitive_statement() {
-        match("TK_WHILE");
-        expression_or();
-        match("TK_DO");
-        statement_block();
+        if (preanalisis.getNombre().equals("TK_WHILE")) {
+            match("TK_WHILE");
+            expression_or();
+            match("TK_DO");
+            statement_block();
+        } else {
+            error();
+        }
     }
 
     private void expression_list() {
-        expression_or();
-        expression_list_1();
+        switch (preanalisis.getNombre()) {
+            case "TK_ID":
+            case "TK_OPAR":
+            case "TK_ADD_OP_REST":
+            case "TK_NOT_OP":
+            case "TK_BOOLEAN_TRUE":
+            case "TK_BOOLEAN_FALSE":
+            case "TK_NUMBER":
+                expression_or();
+                expression_list_1();
+                break;
+            default:
+                error();
+                break;
+        }
     }
 
     private void expression_list_1() {
@@ -356,8 +444,21 @@ public class AnalizadorSintactico {
     }
 
     private void expression_or() {
-        expression_and();
-        expression_or_1();
+        switch (preanalisis.getNombre()) {
+            case "TK_ID":
+            case "TK_OPAR":
+            case "TK_ADD_OP_REST":
+            case "TK_NOT_OP":
+            case "TK_BOOLEAN_TRUE":
+            case "TK_BOOLEAN_FALSE":
+            case "TK_NUMBER":
+                expression_and();
+                expression_or_1();
+                break;
+            default:
+                error();
+                break;
+        }
     }
 
     private void expression_or_1() {
@@ -369,8 +470,21 @@ public class AnalizadorSintactico {
     }
 
     private void expression_and() {
-        expression_rel();
-        expression_and_1();
+        switch (preanalisis.getNombre()) {
+            case "TK_ID":
+            case "TK_OPAR":
+            case "TK_ADD_OP_REST":
+            case "TK_NOT_OP":
+            case "TK_BOOLEAN_TRUE":
+            case "TK_BOOLEAN_FALSE":
+            case "TK_NUMBER":
+                expression_rel();
+                expression_and_1();
+                break;
+            default:
+                error();
+                break;
+        }
     }
 
     private void expression_and_1() {
@@ -382,8 +496,21 @@ public class AnalizadorSintactico {
     }
 
     private void expression_rel() {
-        expression_add();
-        expression_rel_1();
+        switch (preanalisis.getNombre()) {
+            case "TK_ID":
+            case "TK_OPAR":
+            case "TK_ADD_OP_REST":
+            case "TK_NOT_OP":
+            case "TK_BOOLEAN_TRUE":
+            case "TK_BOOLEAN_FALSE":
+            case "TK_NUMBER":
+                expression_add();
+                expression_rel_1();
+                break;
+            default:
+                error();
+                break;
+        }
     }
 
     private void expression_rel_1() {
@@ -402,8 +529,21 @@ public class AnalizadorSintactico {
     }
 
     private void expression_add() {
-        expression_mult();
-        expression_add_1();
+        switch (preanalisis.getNombre()) {
+            case "TK_ID":
+            case "TK_OPAR":
+            case "TK_ADD_OP_REST":
+            case "TK_NOT_OP":
+            case "TK_BOOLEAN_TRUE":
+            case "TK_BOOLEAN_FALSE":
+            case "TK_NUMBER":
+                expression_mult();
+                expression_add_1();
+                break;
+            default:
+                error();
+                break;
+        }
     }
 
     private void expression_add_1() {
@@ -418,8 +558,21 @@ public class AnalizadorSintactico {
     }
 
     private void expression_mult() {
-        factor();
-        expression_mult_1();
+        switch (preanalisis.getNombre()) {
+            case "TK_ID":
+            case "TK_OPAR":
+            case "TK_ADD_OP_REST":
+            case "TK_NOT_OP":
+            case "TK_BOOLEAN_TRUE":
+            case "TK_BOOLEAN_FALSE":
+            case "TK_NUMBER":
+                factor();
+                expression_mult_1();
+                break;
+            default:
+                error();
+                break;
+        }
     }
 
     private void expression_mult_1() {
@@ -549,8 +702,12 @@ public class AnalizadorSintactico {
     }
 
     private void identifier_list() {
-        identifier();
-        identifier_list_1();
+        if (preanalisis.getNombre().equals("TK_ID")) {
+            identifier();
+            identifier_list_1();
+        } else {
+            error();
+        }
     }
 
     private void identifier_list_1() {
