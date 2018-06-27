@@ -53,9 +53,9 @@ public class AnalizadorLexico {
 
     /**
      * Devuelve el primer token encontrado desde la posicion donde se encuentra
-     * leyendo el archivo fuente. En caso de error, lo imprime y devuelve un
-     * token nulo. Si el archivo fuente fue leido en su totalidad devuelve un
-     * token nulo.
+     * leyendo el archivo fuente. Si ocurre un error lexico, lanza un
+     * RuntimeException(message, cause). Si el archivo fuente fue leido en su
+     * totalidad devuelve un token nulo.
      *
      * @return Token o nulo en caso de error o fin de archivo fuente.
      * @throws IOException
@@ -91,7 +91,7 @@ public class AnalizadorLexico {
                         } else if (caracter == '{') {
                             estadoSig = "comment";
                         } else {//error: un símbolo fuera del alfabeto
-                            error();
+                            error("simbolo desconocido");
                         }
                     } else if (estado.equals("symbol")) {/*en este estado el lexema 
                     formado hasta el momento tiene uno o mas simbolos 
@@ -113,7 +113,7 @@ public class AnalizadorLexico {
                             pos--;
                             estadoSig = "start";
                         } else {//error: un símbolo fuera del alfabeto
-                            error();
+                            error("simbolo desconocido");
                         }
                     } else if (estado.equals("letter")) {/*en este estado el lexema
                     formado hasta el momento tiene una o mas letras o 
@@ -140,7 +140,7 @@ public class AnalizadorLexico {
                             pos--;
                             estadoSig = "start";
                         } else {//error: un símbolo fuera del alfabeto
-                            error();
+                            error("simbolo desconocido");
                         }
                     } else if (estado.equals("digit")) {/*en este estado el lexema
                     formado hasta el momento tiene uno o mas dígitos numéricos*/
@@ -159,7 +159,7 @@ public class AnalizadorLexico {
                             pos--;
                             estadoSig = "start";
                         } else {//error: un símbolo fuera del alfabeto
-                            error();
+                            error("simbolo desconocido");
                         }
                     } else if (estado.equals("comment")) {/*este estado indica que
                     se encontró un caracter de apertura de comentario. 
@@ -187,35 +187,55 @@ public class AnalizadorLexico {
                 }
             }
             if (estado.equals("comment")) {//error: un comentario sin cerrar
-                throw new RuntimeException("fin comentario");
+                error("fin comentario");
             }
         } catch (IOException ex) {
             System.out.println("\nError de lectura.");
-        } catch (RuntimeException ex) {
-            error = true;
-            if (ex.getMessage().equals("simbolo desconocido")) {
-                System.out.println("\nError lexico: linea " + nroLinea + " posicion " + (pos + 1) + ".");
-                System.out.println("Caracter '" + caracter + "'  desconocido.");
-            } else if (ex.getMessage().equals("fin comentario")) {
-                System.out.println("\nError lexico: fin de comentario no encontrado.");
-            }
         }
         //System.out.print("\033[30m");
         return token;
     }
 
-    private void error() {
-        throw new RuntimeException("simbolo desconocido");
+    /**
+     * Lanza un RuntimeException("Error lexico: "+message, Causa).
+     */
+    private void error(String message) {
+        error = true;
+        if (message.equals("simbolo desconocido")) {
+            throw new RuntimeException("Error lexico: " + message,
+                    new Throwable("\nError lexico: linea " + nroLinea + " posicion " + (pos + 1)
+                            + "\nCaracter '" + caracter + "'  desconocido."));
+        } else if (message.equals("fin comentario")) {
+            throw new RuntimeException("Error lexico: " + message,
+                    new Throwable("\nError lexico: fin de comentario no encontrado."));
+        }
     }
 
+    /**
+     * Devuelve la posición de la linea actual que se está leyendo del archivo
+     * de entrada.
+     *
+     * @return
+     */
     public int getPos() {
         return pos;
     }
 
+    /**
+     * Devuelve el numero de linea actual que se está leyendo del archivo de
+     * entrada.
+     *
+     * @return
+     */
     public int getNroLinea() {
         return nroLinea;
     }
 
+    /**
+     * Devuelve true si hay un error lexico.
+     *
+     * @return
+     */
     public boolean isError() {
         return error;
     }
