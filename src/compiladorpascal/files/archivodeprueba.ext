@@ -1,4 +1,4 @@
-Program digitos;
+Pr@ogram digitos;
 VAR x:INTEGER;
 function funcion1(x,a,s,d:boolean):integer;
 begin 

@@ -9,14 +9,32 @@ import compiladorpascal.lexico.*;
 public class AnalizadorSintactico {
 
     private Token preanalisis;
-    private boolean error;
     private AnalizadorLexico lexico;
 
     public AnalizadorSintactico(AnalizadorLexico lexico) {
         this.lexico = lexico;
-        preanalisis = lexico.tokenSiguiente();
     }
 
+    /**
+     * Comienza el analisis sintactico desde el inicio del programa. Se encarga
+     * de capturar los posibles errores lexicos y sintacticos.
+     */
+    public void analisisSintactico() {
+        try {
+            preanalisis = lexico.tokenSiguiente();
+            program();
+        } catch (RuntimeException ex) {
+            //los errores lexicos y sintacticos son capturados aca.
+            System.out.println(ex.getCause().getMessage());
+        }
+    }
+
+    /**
+     * Verifica si el String terminal unifica con el simbolo de preanalisis
+     * devuelto por el analizador lexico. Si no unifican lanza error sintactico.
+     *
+     * @param terminal
+     */
     private void match(String terminal) {
         //System.out.print("\033[32m");
         //System.out.print("<" + terminal + ">");
@@ -24,25 +42,16 @@ public class AnalizadorSintactico {
         if (preanalisis.getNombre().equals(terminal)) {
             System.out.print("<" + preanalisis.getNombre() + ">");
             preanalisis = lexico.tokenSiguiente();
-            if (lexico.isError()) {
-                throw new RuntimeException("lexico");
-            }
         } else {
             error();
         }
     }
 
-    public void program() {
-        try {
-            program_heading();
-            block();
-            match("TK_POINT");
-        } catch (RuntimeException ex) {
-            if (ex.getMessage().equals("sintactico")) {
-                System.out.println("\nError sintactico: linea " + lexico.getNroLinea() + " posicion " + (lexico.getPos() + 1) + ".");
-                System.out.println("Simbolo de preanalisis " + preanalisis.getNombre() + " no esperado.");
-            }
-        }
+   
+    private void program() {
+        program_heading();
+        block();
+        match("TK_POINT");
     }
 
     private void program_heading() {
@@ -617,8 +626,13 @@ public class AnalizadorSintactico {
         }
     }
 
+    /**
+     * Lanza un RuntimeException("sintactico", Causa).
+     */
     private void error() {
-        throw new RuntimeException("sintactico");
+        throw new RuntimeException("sintactico", new Throwable("\nError sintactico: linea " + lexico.getNroLinea()
+                + " posicion " + (lexico.getPos() + 1) + ".\nSimbolo de preanalisis " + preanalisis.getNombre()
+                + " no esperado."));
     }
 
 }
