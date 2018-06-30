@@ -42,8 +42,11 @@ public class AnalizadorSintactico {
         if (preanalisis.getNombre().equals(terminal)) {
             System.out.print("<" + preanalisis.getNombre() + ">");
             preanalisis = lexico.tokenSiguiente();
+            if (preanalisis == null && !terminal.equals("TK_POINT")) {
+                error();
+            }
         } else {
-            error();
+            error(terminal);
         }
     }
 
@@ -786,9 +789,27 @@ public class AnalizadorSintactico {
      * Lanza un RuntimeException("sintactico", Causa).
      */
     private void error() {
+        if (preanalisis != null) {
+            throw new RuntimeException("sintactico", new Throwable("\nError sintactico: linea " + lexico.getNroLinea()
+                    + " posicion " + (lexico.getPos() + 1) + ".\nSimbolo de preanalisis " + preanalisis.getNombre()
+                    + " no esperado."));
+        } else {
+            throw new RuntimeException("sintactico", new Throwable("\nError sintactico: linea " + lexico.getNroLinea()
+                    + " posicion " + (lexico.getPos() + 1) + ".\nFin del archivo alcanzado. "
+                    + "Programa incompleto."));
+        }
+    }
+
+    /**
+     * Lanza un RuntimeException("sintactico", Causa). Recibe un terminal que es
+     * el símbolo que esperaba encontrar, para lanzar un error mas especifico.
+     * Se podria generalizar recibiendo el conjunto primeros para lanzar un
+     * error mas significativo.
+     */
+    private void error(String terminal) {
         throw new RuntimeException("sintactico", new Throwable("\nError sintactico: linea " + lexico.getNroLinea()
                 + " posicion " + (lexico.getPos() + 1) + ".\nSimbolo de preanalisis " + preanalisis.getNombre()
-                + " no esperado."));
+                + " no esperado. Se esperaba " + terminal));
     }
 
 }
