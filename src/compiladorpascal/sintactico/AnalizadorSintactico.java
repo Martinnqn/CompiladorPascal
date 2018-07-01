@@ -56,7 +56,7 @@ public class AnalizadorSintactico {
             block();
             match("TK_POINT");
         } else {
-            error();
+            error("TK_PROGRAM");
         }
     }
 
@@ -66,7 +66,7 @@ public class AnalizadorSintactico {
             identifier();
             match("TK_ENDSTNC");
         } else {
-            error();
+            error("TK_PROGRAM");
         }
     }
 
@@ -117,7 +117,7 @@ public class AnalizadorSintactico {
             match("TK_VAR");
             variable_declaration_list();
         } else {
-            error();
+            error("TK_VAR");
         }
     }
 
@@ -127,7 +127,7 @@ public class AnalizadorSintactico {
             match("TK_ENDSTNC");
             variable_declaration_list_1();
         } else {
-            error();
+            error("TK_ID");
         }
     }
 
@@ -143,7 +143,7 @@ public class AnalizadorSintactico {
             match("TK_TPOINTS");
             type();
         } else {
-            error();
+            error("TK_ID");
         }
     }
 
@@ -180,7 +180,7 @@ public class AnalizadorSintactico {
             match("TK_ENDSTNC");
             block();
         } else {
-            error();
+            error("TK_PROCEDURE");
         }
     }
 
@@ -190,7 +190,7 @@ public class AnalizadorSintactico {
             identifier();
             parameters();
         } else {
-            error();
+            error("TK_PROCEDURE");
         }
     }
 
@@ -200,7 +200,7 @@ public class AnalizadorSintactico {
             match("TK_ENDSTNC");
             block();
         } else {
-            error();
+            error("TK_FUNCTION");
         }
     }
 
@@ -212,7 +212,7 @@ public class AnalizadorSintactico {
             match("TK_TPOINTS");
             type();
         } else {
-            error();
+            error("TK_FUNCTION");
         }
     }
 
@@ -235,7 +235,7 @@ public class AnalizadorSintactico {
             parameter_declaration();
             parameter_declaration_list_1();
         } else {
-            error();
+            error("TK_ID");
         }
     }
 
@@ -252,7 +252,7 @@ public class AnalizadorSintactico {
             match("TK_TPOINTS");
             type();
         } else {
-            error();
+            error("TK_ID");
         }
     }
 
@@ -277,7 +277,7 @@ public class AnalizadorSintactico {
             statement_list();
             match("TK_END");
         } else {
-            error();
+            error("TK_BEGIN");
         }
     }
 
@@ -407,7 +407,7 @@ public class AnalizadorSintactico {
             statement_block();
             else_statement();
         } else {
-            error();
+            error("TK_IF");
         }
     }
 
@@ -425,7 +425,7 @@ public class AnalizadorSintactico {
             match("TK_DO");
             statement_block();
         } else {
-            error();
+            error("TK_WHILE");
         }
     }
 
@@ -467,7 +467,10 @@ public class AnalizadorSintactico {
                 expression_or_1();
                 break;
             default:
-                error();
+                /*como este es el procedimiento más general desde el cual se producen
+                las expresiones, se puede mandar un mensaje diciendo que es lo que
+                se esperaba.*/
+                error("una expresión");
                 break;
         }
     }
@@ -707,7 +710,7 @@ public class AnalizadorSintactico {
                 match("TK_TYPE_BOOL");
                 break;
             default:
-                error();
+                error("un tipo de dato");
                 break;
         }
     }
@@ -717,7 +720,7 @@ public class AnalizadorSintactico {
             identifier();
             identifier_list_1();
         } else {
-            error();
+            error("TK_ID");
         }
     }
 
@@ -729,13 +732,10 @@ public class AnalizadorSintactico {
     }
 
     private void identifier() {
-        switch (preanalisis.getNombre()) {
-            case "TK_ID":
-                match("TK_ID");
-                break;
-            default:
-                error();
-                break;
+        if (preanalisis.getNombre().equals("TK_ID")) {
+            match("TK_ID");
+        } else {
+            error("TK_ID");
         }
     }
 
@@ -756,13 +756,10 @@ public class AnalizadorSintactico {
     }
 
     private void number() {
-        switch (preanalisis.getNombre()) {
-            case "TK_NUMBER":
-                match("TK_NUMBER");
-                break;
-            default:
-                error();
-                break;
+        if (preanalisis.getNombre().equals("TK_NUMBER")) {
+            match("TK_NUMBER");
+        } else {
+            error("TK_NUMBER");
         }
     }
 
@@ -801,7 +798,7 @@ public class AnalizadorSintactico {
     }
 
     /**
-     * Lanza un RuntimeException("sintactico", Causa). Recibe un terminal que es
+     * Lanza un RuntimeException("sintactico", Causa). Recibe un string que es
      * el símbolo que esperaba encontrar, para lanzar un error mas especifico.
      * Se podria generalizar recibiendo el conjunto primeros para lanzar un
      * error mas significativo.
