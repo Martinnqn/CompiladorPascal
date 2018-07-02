@@ -19,7 +19,7 @@ public class AnalizadorSintactico {
      * Comienza el analisis sintactico desde el inicio del programa. Se encarga
      * de capturar los posibles errores lexicos y sintacticos.
      */
-    public void analisisSintactico() {
+    public void analizar() {
         try {
             preanalisis = lexico.tokenSiguiente();
             program();

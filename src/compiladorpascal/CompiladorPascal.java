@@ -37,7 +37,7 @@ public class CompiladorPascal {
                 //System.out.print("<\033[32m" + token.getNombre() + "\033[30m|\033[36m" + token.getValor() + "\033[30m>");
             }*/
             AnalizadorSintactico sintactico = new AnalizadorSintactico(lexico);
-            sintactico.analisisSintactico();
+            sintactico.analizar();
         }
     }
 
