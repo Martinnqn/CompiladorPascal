@@ -181,7 +181,7 @@ public class AnalizadorLexico {
                 en caso de tener un comentario de varias líneas*/
                     if (!estado.equals("comment")) {
                         estado = "start";
-                        System.out.println();
+                        //System.out.println();
                     }
                     nroLinea++;
                 }

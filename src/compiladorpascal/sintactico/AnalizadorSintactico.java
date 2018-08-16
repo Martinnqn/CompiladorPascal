@@ -13,20 +13,7 @@ public class AnalizadorSintactico {
 
     public AnalizadorSintactico(AnalizadorLexico lexico) {
         this.lexico = lexico;
-    }
-
-    /**
-     * Comienza el analisis sintactico desde el inicio del programa. Se encarga
-     * de capturar los posibles errores lexicos y sintacticos.
-     */
-    public void analizar() {
-        try {
-            preanalisis = lexico.tokenSiguiente();
-            program();
-        } catch (RuntimeException ex) {
-            //los errores lexicos y sintacticos son capturados aca.
-            System.out.println(ex.getCause().getMessage());
-        }
+        preanalisis = lexico.tokenSiguiente();
     }
 
     /**
@@ -40,7 +27,7 @@ public class AnalizadorSintactico {
         //System.out.print("<" + terminal + ">");
         //System.out.print("\033[30m");
         if (preanalisis.getNombre().equals(terminal)) {
-            System.out.print("<" + preanalisis.getNombre() + ">");
+            //System.out.print("<" + preanalisis.getNombre() + ">");
             preanalisis = lexico.tokenSiguiente();
             if (preanalisis == null && !terminal.equals("TK_POINT")) {
                 error();
@@ -50,7 +37,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void program() {
+    public void program() {
         if (preanalisis.getNombre().equals("TK_PROGRAM")) {
             program_heading();
             block();
@@ -82,7 +69,7 @@ public class AnalizadorSintactico {
                 multiple_statement();
                 break;
             default:
-                error();
+                error("TK_VAR o TK_PROCEDURE o TK_FUNCTION o TK_BEGIN");
                 break;
         }
     }
@@ -98,7 +85,7 @@ public class AnalizadorSintactico {
                 declaration_block_1();
                 break;
             default:
-                error();
+                error("TK_VAR o TK_PROCEDURE o TK_FUNCTION");
                 break;
         }
     }
@@ -160,7 +147,7 @@ public class AnalizadorSintactico {
                 procedure_and_function_declaration_list_1();
                 break;
             default:
-                error();
+                error("TK_PROCEDURE o TK_FUNCTION");
                 break;
         }
     }
@@ -292,7 +279,7 @@ public class AnalizadorSintactico {
                 statement_list_1();
                 break;
             default:
-                error();
+                error("TK_ID o TK_WRITE o TK_READ o TK_IF o TK_WHILE");
                 break;
         }
     }
@@ -316,7 +303,7 @@ public class AnalizadorSintactico {
                 structured_statement();
                 break;
             default:
-                error();
+                error("TK_ID o TK_WRITE o TK_READ o TK_IF o TK_WHILE");
                 break;
         }
     }
@@ -336,7 +323,7 @@ public class AnalizadorSintactico {
                 call_procedure_or_function();
                 break;
             default:
-                error();
+                error("TK_ID o TK_WRITE o TK_READ");
                 break;
         }
     }
@@ -361,7 +348,7 @@ public class AnalizadorSintactico {
                 repetitive_statement();
                 break;
             default:
-                error();
+                error("TK_IF o TK_WHILE");
                 break;
         }
     }
@@ -371,7 +358,7 @@ public class AnalizadorSintactico {
             match("TK_ASSIGN");
             expression_or();
         } else {
-            error();
+            error("TK_ASSIGN");
         }
     }
 
@@ -381,7 +368,7 @@ public class AnalizadorSintactico {
             call_procedure_or_function_1();
             match("TK_CPAR");
         } else {
-            error();
+            error("TK_OPAR");
         }
     }
 
@@ -442,7 +429,7 @@ public class AnalizadorSintactico {
                 expression_list_1();
                 break;
             default:
-                error();
+                error("TK_ID o TK_OPAR o TK_ADD_OP_REST o TK_NOT_OP o TK_BOOLEAN_TRUE o TK_BOOLEAN_FALSE o TK_NUMBER");
                 break;
         }
     }
@@ -496,7 +483,7 @@ public class AnalizadorSintactico {
                 expression_and_1();
                 break;
             default:
-                error();
+                error("una expresión");
                 break;
         }
     }
@@ -522,7 +509,7 @@ public class AnalizadorSintactico {
                 expression_rel_1();
                 break;
             default:
-                error();
+                error("una expresión");
                 break;
         }
     }
@@ -555,7 +542,7 @@ public class AnalizadorSintactico {
                 expression_add_1();
                 break;
             default:
-                error();
+                error("una expresión");
                 break;
         }
     }
@@ -584,7 +571,7 @@ public class AnalizadorSintactico {
                 expression_mult_1();
                 break;
             default:
-                error();
+                error("una expresión");
                 break;
         }
     }
@@ -622,7 +609,7 @@ public class AnalizadorSintactico {
                 literal();
                 break;
             default:
-                error();
+                error("un factor");
                 break;
         }
     }
@@ -654,7 +641,7 @@ public class AnalizadorSintactico {
                 match("TK_REL_OP_GEQ");
                 break;
             default:
-                error();
+                error("un operador relacional");
                 break;
         }
     }
@@ -668,7 +655,7 @@ public class AnalizadorSintactico {
                 match("TK_NOT_OP");
                 break;
             default:
-                error();
+                error("TK_ADD_OP_REST o TK_NOT_OP");
                 break;
         }
     }
@@ -682,7 +669,7 @@ public class AnalizadorSintactico {
                 match("TK_ADD_OP_REST");
                 break;
             default:
-                error();
+                error("TK_ADD_OP_SUM o TK_ADD_OP_REST");
                 break;
         }
     }
@@ -696,7 +683,7 @@ public class AnalizadorSintactico {
                 match("TK_MULT_OP_DIV");
                 break;
             default:
-                error();
+                error("TK_MULT_OP_POR o TK_MULT_OP_DIV");
                 break;
         }
     }
@@ -750,7 +737,7 @@ public class AnalizadorSintactico {
                 number();
                 break;
             default:
-                error();
+                error("TK_BOOLEAN_TRUE o TK_BOOLEAN_FALSE");
                 break;
         }
     }
@@ -777,7 +764,7 @@ public class AnalizadorSintactico {
                 match("TK_BOOLEAN_FALSE");
                 break;
             default:
-                error();
+                error("TK_BOOLEAN_TRUE o TK_BOOLEAN_FALSE");
                 break;
         }
     }

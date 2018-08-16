@@ -37,7 +37,16 @@ public class CompiladorPascal {
                 //System.out.print("<\033[32m" + token.getNombre() + "\033[30m|\033[36m" + token.getValor() + "\033[30m>");
             }*/
             AnalizadorSintactico sintactico = new AnalizadorSintactico(lexico);
-            sintactico.analizar();
+
+            //se encarga de capturar los posibles errores lexicos y sintacticos.
+            try {
+                sintactico.program();
+                System.out.println("\n" + fuente.getName() + ": compilación exitosa.");
+            } catch (RuntimeException ex) {
+                //los errores lexicos y sintacticos son capturados aca.
+                System.out.print("\n" + fuente.getName() + ": error de compilación.");
+                System.out.println(ex.getCause().getMessage());
+            }
         }
     }
 
