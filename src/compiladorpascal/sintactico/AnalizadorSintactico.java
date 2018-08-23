@@ -8,8 +8,8 @@ import compiladorpascal.lexico.*;
  */
 public class AnalizadorSintactico {
 
-    private Token preanalisis;
-    private AnalizadorLexico lexico;
+    protected Token preanalisis;
+    protected AnalizadorLexico lexico;
 
     public AnalizadorSintactico(AnalizadorLexico lexico) {
         this.lexico = lexico;
@@ -22,7 +22,7 @@ public class AnalizadorSintactico {
      *
      * @param terminal
      */
-    private void match(String terminal) {
+    protected void match(String terminal) {
         //System.out.print("\033[32m");
         //System.out.print("<" + terminal + ">");
         //System.out.print("\033[30m");
@@ -47,7 +47,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void program_heading() {
+    protected void program_heading() {
         if (preanalisis.getNombre().equals("TK_PROGRAM")) {
             match("TK_PROGRAM");
             identifier();
@@ -57,7 +57,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void block() {
+    protected void block() {
         switch (preanalisis.getNombre()) {
             case "TK_VAR":
             case "TK_PROCEDURE":
@@ -74,7 +74,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void declaration_block() {
+    protected void declaration_block() {
         switch (preanalisis.getNombre()) {
             case "TK_VAR":
                 variable_declaration_block();
@@ -90,7 +90,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void declaration_block_1() {
+    protected void declaration_block_1() {
         switch (preanalisis.getNombre()) {
             case "TK_PROCEDURE":
             case "TK_FUNCTION":
@@ -99,7 +99,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void variable_declaration_block() {
+    protected void variable_declaration_block() {
         if (preanalisis.getNombre().equals("TK_VAR")) {
             match("TK_VAR");
             variable_declaration_list();
@@ -108,7 +108,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void variable_declaration_list() {
+    protected void variable_declaration_list() {
         if (preanalisis.getNombre().equals("TK_ID")) {
             variable_declaration();
             match("TK_ENDSTNC");
@@ -118,13 +118,13 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void variable_declaration_list_1() {
+    protected void variable_declaration_list_1() {
         if (preanalisis.getNombre().equals("TK_ID")) {
             variable_declaration_list();
         }
     }
 
-    private void variable_declaration() {
+    protected void variable_declaration() {
         if (preanalisis.getNombre().equals("TK_ID")) {
             identifier_list();
             match("TK_TPOINTS");
@@ -134,7 +134,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void procedure_and_function_declaration_list() {
+    protected void procedure_and_function_declaration_list() {
         switch (preanalisis.getNombre()) {
             case "TK_PROCEDURE":
                 procedure_declaration();
@@ -152,7 +152,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void procedure_and_function_declaration_list_1() {
+    protected void procedure_and_function_declaration_list_1() {
         switch (preanalisis.getNombre()) {
             case "TK_PROCEDURE":
             case "TK_FUNCTION":
@@ -161,7 +161,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void procedure_declaration() {
+    protected void procedure_declaration() {
         if (preanalisis.getNombre().equals("TK_PROCEDURE")) {
             procedure_heading();
             match("TK_ENDSTNC");
@@ -171,7 +171,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void procedure_heading() {
+    protected void procedure_heading() {
         if (preanalisis.getNombre().equals("TK_PROCEDURE")) {
             match("TK_PROCEDURE");
             identifier();
@@ -181,7 +181,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void function_declaration() {
+    protected void function_declaration() {
         if (preanalisis.getNombre().equals("TK_FUNCTION")) {
             function_heading();
             match("TK_ENDSTNC");
@@ -191,7 +191,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void function_heading() {
+    protected void function_heading() {
         if (preanalisis.getNombre().equals("TK_FUNCTION")) {
             match("TK_FUNCTION");
             identifier();
@@ -203,7 +203,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void parameters() {
+    protected void parameters() {
         if (preanalisis.getNombre().equals("TK_OPAR")) {
             match("TK_OPAR");
             parameters_2();
@@ -211,13 +211,13 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void parameters_2() {
+    protected void parameters_2() {
         if (preanalisis.getNombre().equals("TK_ID")) {
             parameter_declaration_list();
         }
     }
 
-    private void parameter_declaration_list() {
+    protected void parameter_declaration_list() {
         if (preanalisis.getNombre().equals("TK_ID")) {
             parameter_declaration();
             parameter_declaration_list_1();
@@ -226,14 +226,14 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void parameter_declaration_list_1() {
+    protected void parameter_declaration_list_1() {
         if (preanalisis.getNombre().equals("TK_COMMA")) {
             match("TK_COMMA");
             parameter_declaration_list();
         }
     }
 
-    private void parameter_declaration() {
+    protected void parameter_declaration() {
         if (preanalisis.getNombre().equals("TK_ID")) {
             identifier_list();
             match("TK_TPOINTS");
@@ -243,7 +243,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void statement_block() {
+    protected void statement_block() {
         switch (preanalisis.getNombre()) {
             case "TK_ID":
             case "TK_WRITE":
@@ -258,7 +258,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void multiple_statement() {
+    protected void multiple_statement() {
         if (preanalisis.getNombre().equals("TK_BEGIN")) {
             match("TK_BEGIN");
             statement_list();
@@ -268,7 +268,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void statement_list() {
+    protected void statement_list() {
         switch (preanalisis.getNombre()) {
             case "TK_ID":
             case "TK_WRITE":
@@ -284,14 +284,14 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void statement_list_1() {
+    protected void statement_list_1() {
         if (preanalisis.getNombre().equals("TK_ENDSTNC")) {
             match("TK_ENDSTNC");
             statement_list();
         }
     }
 
-    private void statement() {
+    protected void statement() {
         switch (preanalisis.getNombre()) {
             case "TK_ID":
             case "TK_WRITE":
@@ -308,7 +308,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void simple_statement() {
+    protected void simple_statement() {
         switch (preanalisis.getNombre()) {
             case "TK_ID":
                 identifier();
@@ -328,7 +328,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void simple_statement_1() {
+    protected void simple_statement_1() {
         switch (preanalisis.getNombre()) {
             case "TK_ASSIGN":
                 assignment_statement();
@@ -339,7 +339,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void structured_statement() {
+    protected void structured_statement() {
         switch (preanalisis.getNombre()) {
             case "TK_IF":
                 conditional_statement();
@@ -353,7 +353,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void assignment_statement() {
+    protected void assignment_statement() {
         if (preanalisis.getNombre().equals("TK_ASSIGN")) {
             match("TK_ASSIGN");
             expression_or();
@@ -362,7 +362,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void call_procedure_or_function() {
+    protected void call_procedure_or_function() {
         if (preanalisis.getNombre().equals("TK_OPAR")) {
             match("TK_OPAR");
             call_procedure_or_function_1();
@@ -372,7 +372,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void call_procedure_or_function_1() {
+    protected void call_procedure_or_function_1() {
         switch (preanalisis.getNombre()) {
             case "TK_ID":
             case "TK_OPAR":
@@ -386,7 +386,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void conditional_statement() {
+    protected void conditional_statement() {
         if (preanalisis.getNombre().equals("TK_IF")) {
             match("TK_IF");
             expression_or();
@@ -398,14 +398,14 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void else_statement() {
+    protected void else_statement() {
         if (preanalisis.getNombre().equals("TK_ELSE")) {
             match("TK_ELSE");
             statement_block();
         }
     }
 
-    private void repetitive_statement() {
+    protected void repetitive_statement() {
         if (preanalisis.getNombre().equals("TK_WHILE")) {
             match("TK_WHILE");
             expression_or();
@@ -416,7 +416,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void expression_list() {
+    protected void expression_list() {
         switch (preanalisis.getNombre()) {
             case "TK_ID":
             case "TK_OPAR":
@@ -434,14 +434,14 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void expression_list_1() {
+    protected void expression_list_1() {
         if (preanalisis.getNombre().equals("TK_COMMA")) {
             match("TK_COMMA");
             expression_list();
         }
     }
 
-    private void expression_or() {
+    protected void expression_or() {
         switch (preanalisis.getNombre()) {
             case "TK_ID":
             case "TK_OPAR":
@@ -462,7 +462,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void expression_or_1() {
+    protected void expression_or_1() {
         if (preanalisis.getNombre().equals("TK_OR")) {
             match("TK_OR");
             expression_and();
@@ -470,7 +470,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void expression_and() {
+    protected void expression_and() {
         switch (preanalisis.getNombre()) {
             case "TK_ID":
             case "TK_OPAR":
@@ -488,7 +488,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void expression_and_1() {
+    protected void expression_and_1() {
         if (preanalisis.getNombre().equals("TK_AND")) {
             match("TK_AND");
             expression_rel();
@@ -496,7 +496,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void expression_rel() {
+    protected void expression_rel() {
         switch (preanalisis.getNombre()) {
             case "TK_ID":
             case "TK_OPAR":
@@ -514,7 +514,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void expression_rel_1() {
+    protected void expression_rel_1() {
         switch (preanalisis.getNombre()) {
             case "TK_REL_OP_EQ":
             case "TK_REL_OP_NEQ":
@@ -529,7 +529,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void expression_add() {
+    protected void expression_add() {
         switch (preanalisis.getNombre()) {
             case "TK_ID":
             case "TK_OPAR":
@@ -547,7 +547,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void expression_add_1() {
+    protected void expression_add_1() {
         switch (preanalisis.getNombre()) {
             case "TK_ADD_OP_SUM":
             case "TK_ADD_OP_REST":
@@ -558,7 +558,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void expression_mult() {
+    protected void expression_mult() {
         switch (preanalisis.getNombre()) {
             case "TK_ID":
             case "TK_OPAR":
@@ -576,7 +576,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void expression_mult_1() {
+    protected void expression_mult_1() {
         switch (preanalisis.getNombre()) {
             case "TK_MULT_OP_POR":
             case "TK_MULT_OP_DIV":
@@ -587,7 +587,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void factor() {
+    protected void factor() {
         switch (preanalisis.getNombre()) {
             case "TK_ID":
                 identifier();
@@ -614,13 +614,13 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void factor_1() {
+    protected void factor_1() {
         if (preanalisis.getNombre().equals("TK_OPAR")) {
             call_procedure_or_function();
         }
     }
 
-    private void relational_operator() {
+    protected void relational_operator() {
         switch (preanalisis.getNombre()) {
             case "TK_REL_OP_EQ":
                 match("TK_REL_OP_EQ");
@@ -646,7 +646,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void unary_operator() {
+    protected void unary_operator() {
         switch (preanalisis.getNombre()) {
             case "TK_ADD_OP_REST":
                 match("TK_ADD_OP_REST");
@@ -660,7 +660,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void addition_operator() {
+    protected void addition_operator() {
         switch (preanalisis.getNombre()) {
             case "TK_ADD_OP_SUM":
                 match("TK_ADD_OP_SUM");
@@ -674,7 +674,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void multiplication_operator() {
+    protected void multiplication_operator() {
         switch (preanalisis.getNombre()) {
             case "TK_MULT_OP_POR":
                 match("TK_MULT_OP_POR");
@@ -688,7 +688,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void type() {
+    protected void type() {
         switch (preanalisis.getNombre()) {
             case "TK_TYPE_INT":
                 match("TK_TYPE_INT");
@@ -702,7 +702,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void identifier_list() {
+    protected void identifier_list() {
         if (preanalisis.getNombre().equals("TK_ID")) {
             identifier();
             identifier_list_1();
@@ -711,14 +711,14 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void identifier_list_1() {
+    protected void identifier_list_1() {
         if (preanalisis.getNombre().equals("TK_COMMA")) {
             match("TK_COMMA");
             identifier_list();
         }
     }
 
-    private void identifier() {
+    protected void identifier() {
         if (preanalisis.getNombre().equals("TK_ID")) {
             match("TK_ID");
         } else {
@@ -726,8 +726,8 @@ public class AnalizadorSintactico {
         }
     }
 
-    //private void identifier_1() {}
-    private void literal() {
+    //protected void identifier_1() {}
+    protected void literal() {
         switch (preanalisis.getNombre()) {
             case "TK_BOOLEAN_TRUE":
             case "TK_BOOLEAN_FALSE":
@@ -742,7 +742,7 @@ public class AnalizadorSintactico {
         }
     }
 
-    private void number() {
+    protected void number() {
         if (preanalisis.getNombre().equals("TK_NUMBER")) {
             match("TK_NUMBER");
         } else {
@@ -750,12 +750,12 @@ public class AnalizadorSintactico {
         }
     }
 
-    //private void number_1() {}
-    //private void word() {}
-    //private void word_1() {}
-    //private void letter() {}
-    //private void digit() {}
-    private void bool() {
+    //protected void number_1() {}
+    //protected void word() {}
+    //protected void word_1() {}
+    //protected void letter() {}
+    //protected void digit() {}
+    protected void bool() {
         switch (preanalisis.getNombre()) {
             case "TK_BOOLEAN_TRUE":
                 match("TK_BOOLEAN_TRUE");
@@ -772,7 +772,7 @@ public class AnalizadorSintactico {
     /**
      * Lanza un RuntimeException("sintactico", Causa).
      */
-    private void error() {
+    protected void error() {
         if (preanalisis != null) {
             throw new RuntimeException("sintactico", new Throwable("\nError sintactico: linea " + lexico.getNroLinea()
                     + " posicion " + (lexico.getPos() + 1) + ".\nSimbolo de preanalisis " + preanalisis.getNombre()
@@ -790,7 +790,7 @@ public class AnalizadorSintactico {
      * Se podria generalizar recibiendo el conjunto primeros para lanzar un
      * error mas significativo.
      */
-    private void error(String terminal) {
+    protected void error(String terminal) {
         throw new RuntimeException("sintactico", new Throwable("\nError sintactico: linea " + lexico.getNroLinea()
                 + " posicion " + (lexico.getPos() + 1) + ".\nSimbolo de preanalisis " + preanalisis.getNombre()
                 + " no esperado. Se esperaba " + terminal));
