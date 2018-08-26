@@ -463,8 +463,8 @@ public class AnalizadorSintactico {
     }
 
     protected void expression_or_1() {
-        if (preanalisis.getNombre().equals("TK_OR")) {
-            match("TK_OR");
+        if (preanalisis.getNombre().equals("TK_BOOL_OP_OR")) {
+            match("TK_BOOL_OP_OR");
             expression_and();
             expression_or_1();
         }
@@ -489,8 +489,8 @@ public class AnalizadorSintactico {
     }
 
     protected void expression_and_1() {
-        if (preanalisis.getNombre().equals("TK_AND")) {
-            match("TK_AND");
+        if (preanalisis.getNombre().equals("TK_BOOL_OP_AND")) {
+            match("TK_BOOL_OP_AND");
             expression_rel();
             expression_and_1();
         }
