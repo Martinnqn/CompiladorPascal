@@ -3,6 +3,7 @@ package compiladorpascal.semantico;
 import compiladorpascal.lexico.*;
 import compiladorpascal.sintactico.*;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Stack;
 
 /**
@@ -11,11 +12,13 @@ import java.util.Stack;
  */
 public class AnalizadorSemantico extends AnalizadorSintactico {
 
-    private Stack<HashMap<String, String>> tablaSimbolos = new Stack();
+    private Stack<Environment> tablaSimbolos;
+    private LinkedList<String> vars;
 
     public AnalizadorSemantico(AnalizadorLexico lexico) {
         super(lexico);
-        tablaSimbolos.add(new HashMap<String,String>());
+        tablaSimbolos = new Stack();
+        vars = new LinkedList<>();
     }
 
     /**
@@ -30,7 +33,6 @@ public class AnalizadorSemantico extends AnalizadorSintactico {
         //System.out.print("<" + terminal + ">");
         //System.out.print("\033[30m");
         if (preanalisis.getNombre().equals(terminal)) {
-            cargarTabla();
             //System.out.print("<" + preanalisis.getNombre() + ">");
             preanalisis = lexico.tokenSiguiente();
             if (preanalisis == null && !terminal.equals("TK_POINT")) {
@@ -44,9 +46,15 @@ public class AnalizadorSemantico extends AnalizadorSintactico {
     @Override
     public void program() {
         if (preanalisis.getNombre().equals("TK_PROGRAM")) {
+            //se crea la tabla de simbolos para el ambiente del programa
+            Environment env = new Environment("PROGRAM", lexico.getNroLinea());
+            tablaSimbolos.add(env);
             program_heading();
             block();
             match("TK_POINT");
+            //se elimina la  tabla de simbolos del programa
+            mostrarPila();
+            tablaSimbolos.pop();
         } else {
             error("TK_PROGRAM");
         }
@@ -56,6 +64,8 @@ public class AnalizadorSemantico extends AnalizadorSintactico {
     protected void program_heading() {
         if (preanalisis.getNombre().equals("TK_PROGRAM")) {
             match("TK_PROGRAM");
+            tablaSimbolos.peek().setLineaDeclaracion(lexico.getNroLinea());
+            tablaSimbolos.peek().setNombre(preanalisis.getValor());
             identifier();
             match("TK_ENDSTNC");
         } else {
@@ -141,7 +151,11 @@ public class AnalizadorSemantico extends AnalizadorSintactico {
         if (preanalisis.getNombre().equals("TK_ID")) {
             identifier_list();
             match("TK_TPOINTS");
+            String type = preanalisis.getValor();
             type();
+            //carga la tabla con las variables de identifier_list que se cargaron en vars y
+            //con el tipo de variable type.
+            addIdentificadores(type);
         } else {
             error("TK_ID");
         }
@@ -182,6 +196,9 @@ public class AnalizadorSemantico extends AnalizadorSintactico {
             procedure_heading();
             match("TK_ENDSTNC");
             block();
+            //cuando termina el block del procedure, se puede eliminar su tabla de simbolos
+            mostrarPila();
+            tablaSimbolos.pop();
         } else {
             error("TK_PROCEDURE");
         }
@@ -191,7 +208,11 @@ public class AnalizadorSemantico extends AnalizadorSintactico {
     protected void procedure_heading() {
         if (preanalisis.getNombre().equals("TK_PROCEDURE")) {
             match("TK_PROCEDURE");
+            //se guarda el nombre del procedimiento en la tabla actual
+            tablaSimbolos.peek().addIdentificador(preanalisis.getValor(), "PROCEDURE");
             identifier();
+            //se crea la nueva tabla para el ambiente actual del procedimiento
+            tablaSimbolos.add(new Environment("PROCEDURE", lexico.getNroLinea()));
             parameters();
         } else {
             error("TK_PROCEDURE");
@@ -204,18 +225,32 @@ public class AnalizadorSemantico extends AnalizadorSintactico {
             function_heading();
             match("TK_ENDSTNC");
             block();
+            //cuando termina el block de function, se puede eliminar su tabla de simbolos
+            mostrarPila();
+            tablaSimbolos.pop();
         } else {
             error("TK_FUNCTION");
         }
     }
 
     protected void function_heading() {
+        String name;
+        String type;
+        Environment padre = tablaSimbolos.peek();
         if (preanalisis.getNombre().equals("TK_FUNCTION")) {
             match("TK_FUNCTION");
+            name = preanalisis.getValor();
             identifier();
+            //se crea una nueva tabla para el ambiente de la funcion actual.
+            tablaSimbolos.add(new Environment("FUNCTION", lexico.getNroLinea()));
             parameters();
             match("TK_TPOINTS");
+            type = preanalisis.getValor();
             type();
+            //si la declaracion de la funcion esta ok, se guarda en la tabla de simbolos
+            //del padre, ya que en el tope de la pila ahora esta la tabla para el ambiente de la funcion
+            padre.addIdentificador(name, "FUNCTION");
+            padre.addFunctionType(name, type);
         } else {
             error("TK_FUNCTION");
         }
@@ -255,7 +290,9 @@ public class AnalizadorSemantico extends AnalizadorSintactico {
         if (preanalisis.getNombre().equals("TK_ID")) {
             identifier_list();
             match("TK_TPOINTS");
+            String type = preanalisis.getValor();
             type();
+            addParameters(type);
         } else {
             error("TK_ID");
         }
@@ -354,6 +391,8 @@ public class AnalizadorSemantico extends AnalizadorSintactico {
             case "TK_OPAR":
                 call_procedure_or_function();
                 break;
+            default:
+                error("una llamada a procedimiento/funcion o asignacion.");
         }
     }
 
@@ -722,6 +761,9 @@ public class AnalizadorSemantico extends AnalizadorSintactico {
 
     protected void identifier_list() {
         if (preanalisis.getNombre().equals("TK_ID")) {
+            //se guarda el identificador declarado en vars para luego ser volcado 
+            //en la tabla de simbolo con su tipo correspondiente.
+            vars.add(preanalisis.getValor());
             identifier();
             identifier_list_1();
         } else {
@@ -787,12 +829,66 @@ public class AnalizadorSemantico extends AnalizadorSintactico {
         }
     }
 
-    private void cargarTabla() {
-        if (preanalisis.getNombre().equals("TK_ID")) {
-            tablaSimbolos.peek().put(preanalisis.getValor(), "integer");
-        } else if (preanalisis.getNombre().equals("TK_ID")) {
-            tablaSimbolos.add(new HashMap<>());
+    /**
+     * Carga las variables de vars en la tabla de simbolos del ambiente actual
+     * con el tipo type. Luego de cargar las variables, vacia la lista vars.
+     *
+     * @param type
+     */
+    private void addIdentificadores(String type) {
+        for (String var : vars) {
+            //chequear unicidad
+            if (tablaSimbolos.peek().getIdentificadores().containsKey(var)) {
+                error("unicidad");
+            } else {
+                tablaSimbolos.peek().getIdentificadores().put(var, type);
+            }
+        }
+        vars.clear();
+    }
+
+    /**
+     * Carga las variables de vars en la tabla de simbolos del ambiente actual
+     * con el tipo type. Luego de cargar las variables, vacia la lista vars.
+     *
+     * @param type
+     */
+    private void addParameters(String type) {
+        for (String var : vars) {
+            //chequear unicidad
+            if (tablaSimbolos.peek().getParametros().contains(var)) {
+                error("unicidad");
+            } else {
+                tablaSimbolos.peek().getIdentificadores().put(var, type);
+                tablaSimbolos.peek().getParametros().add(type);
+            }
+        }
+        vars.clear();
+    }
+
+    /**
+     * Lanza un RuntimeException("semantico", Causa).
+     *
+     * @param type
+     */
+    @Override
+    protected void error(String type) {
+        //si es un error semantico lo lanza aca, sino deriva el error al sintactico.
+        if (type.equals("unicidad")) {
+            throw new RuntimeException("semantico", new Throwable("\nError semantico: linea " + lexico.getNroLinea()
+                    + " posicion " + (lexico.getPos() + 1) + ".\nVariable " + preanalisis.getValor()
+                    + " ya declarada en el ambiente."));
+        } else {
+            super.error(type);
         }
     }
 
+    private void mostrarPila() {
+        int size = 0;
+        for (Environment env : tablaSimbolos) {
+            System.out.println("profundidad " + size + ": \n" + env.toString() + "\n");
+            size++;
+        }
+        System.out.println("--------------------");
+    }
 }
