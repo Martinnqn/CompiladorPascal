@@ -67,5 +67,5 @@ public class Tokens {
         tokens.put("WRITE", "TK_WRITE");
         return tokens;
     }
-    
+
 }

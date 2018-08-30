@@ -6,14 +6,6 @@ Var
 {procedure pru2(p1: boolean; p2: integer); }
 procedure pru2(p2: integer);
 var r3: integer;
-    function pru2(p2: integer): integer;
-        var r3: integer;
-        begin
-
-          pru:=18;
-        r3:= 66; 
-        r := 4
-    end;
 begin
 
   pru:=18;

@@ -1,7 +1,6 @@
 package compiladorpascal;
 
 import compiladorpascal.lexico.*;
-import compiladorpascal.semantico.AnalizadorSemantico;
 import compiladorpascal.sintactico.AnalizadorSintactico;
 import java.io.File;
 import java.io.IOException;
@@ -37,12 +36,11 @@ public class CompiladorPascal {
                 System.out.print("<" + token.getNombre() + "|" + token.getValor() + "> ");
                 //System.out.print("<\033[32m" + token.getNombre() + "\033[30m|\033[36m" + token.getValor() + "\033[30m>");
             }*/
-//            AnalizadorSintactico sintactico = new AnalizadorSintactico(lexico);
-            AnalizadorSemantico semantico = new AnalizadorSemantico(lexico);
+            AnalizadorSintactico sintactico = new AnalizadorSintactico(lexico);
 
             //se encarga de capturar los posibles errores lexicos y sintacticos.
             try {
-                semantico.program();
+                sintactico.program();
                 System.out.println("\n" + fuente.getName() + ": compilación exitosa.");
             } catch (RuntimeException ex) {
                 //los errores lexicos y sintacticos son capturados aca.

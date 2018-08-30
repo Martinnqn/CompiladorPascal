@@ -1,7 +1,7 @@
 Program digitos;
 VAR x:INTEGER;
 function funcion1(x,a,s,d:boolean):integer;
-begin 
+begin
     funcion1 := 1
 end;
 procedure procedure1();
