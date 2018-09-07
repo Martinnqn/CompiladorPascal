@@ -689,9 +689,7 @@ public class AnalizadorSemantico {
                 switch (op) {
                     case "TK_REL_OP_EQ":
                     case "TK_REL_OP_NEQ":
-                        if (!(type.equalsIgnoreCase(type2))) {
-                            errorSemantico("type", type + " y " + type2 + " no aplicables a operador " + op);
-                        }
+                        //aca puede ser cualquier operando, todos contra todos.
                         type = "TK_TYPE_BOOL";
                         break;
                     case "TK_REL_OP_MIN":
