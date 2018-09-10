@@ -614,7 +614,7 @@ public class AnalizadorSemantico {
         if (preanalisis.getNombre().equals("TK_BOOL_OP_OR")) {
             match("TK_BOOL_OP_OR");
             String type2 = expression_and();
-            if (!(type.equalsIgnoreCase(type2))) {
+            if (!((type.equalsIgnoreCase(type2)) && type.equalsIgnoreCase("TK_TYPE_BOOL"))) {
                 errorSemantico("type", type + " y " + type2 + " no aplicables a operador OR");
             }
             type = "TK_TYPE_BOOL";
@@ -647,7 +647,7 @@ public class AnalizadorSemantico {
         if (preanalisis.getNombre().equals("TK_BOOL_OP_AND")) {
             match("TK_BOOL_OP_AND");
             String type2 = expression_rel();
-            if (!(type.equalsIgnoreCase(type2))) {
+           if (!((type.equalsIgnoreCase(type2)) && type.equalsIgnoreCase("TK_TYPE_BOOL"))) {
                 errorSemantico("type", type + " y " + type2 + " no aplicables a operador AND");
             }
             type = "TK_TYPE_BOOL";
