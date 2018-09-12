@@ -9,8 +9,7 @@ import java.util.LinkedList;
  */
 public class AnalizadorSemantico {
 
-    private Ambiente tablaActual;
-//    private LinkedList<String> vars;
+    private Ambiente ambiente;
     private AnalizadorLexico lexico;
     private Token preanalisis;
 
@@ -45,10 +44,10 @@ public class AnalizadorSemantico {
             program_heading();
             block();
             match("TK_POINT");
-            mostrarPila(tablaActual);
-            System.out.println("------------------ desapila ambiente del programa principal -----------------");
+            mostrarPila(ambiente);
+            //System.out.println("------------------ desapila ambiente del programa principal -----------------");
             //se elimina la  tabla de simbolos del programa
-            tablaActual = null;
+            ambiente = null;
         } else {
             errorSintactico("TK_PROGRAM");
         }
@@ -59,7 +58,7 @@ public class AnalizadorSemantico {
             match("TK_PROGRAM");
             String nombre = identifier();
             //se crea la tabla de simbolos para el ambiente del programa
-            tablaActual = new Ambiente("TK_PROGRAM", nombre, null);
+            ambiente = new Ambiente("TK_PROGRAM", nombre, null);
             match("TK_ENDSTNC");
         } else {
             errorSintactico("TK_PROGRAM");
@@ -142,10 +141,10 @@ public class AnalizadorSemantico {
             //carga los identificadores y sus tipos.
             for (String id : idents) {
                 //chequear unicidad
-                if (tablaActual.getTipos().containsKey(id) || tablaActual.getNombre().equals(id)) {
+                if (ambiente.getTipos().containsKey(id) || ambiente.getNombre().equals(id)) {
                     errorSemantico("unicidad", id);
                 } else {
-                    tablaActual.addIdentificador(id, type);
+                    ambiente.addVariable(id, type);
                 }
             }
         } else {
@@ -186,9 +185,9 @@ public class AnalizadorSemantico {
             match("TK_ENDSTNC");
             block();
             //cuando termina el block del procedure, se puede eliminar su tabla de simbolos
-            mostrarPila(tablaActual);
-            System.out.println("------------------ desapila ambiente " + tablaActual.getNombre() + " -----------------");
-            tablaActual = tablaActual.getPadre();
+            mostrarPila(ambiente);
+            //System.out.println("------------------ desapila ambiente " + ambiente.getNombre() + " -----------------");
+            ambiente = ambiente.getPadre();
         } else {
             errorSintactico("TK_PROCEDURE");
         }
@@ -201,14 +200,14 @@ public class AnalizadorSemantico {
             LinkedList<LinkedList<String>> listaParametros = new LinkedList<>();
             parameters(listaParametros);
             //se agrega el identificador al padre
-            if (tablaActual.getTipos().containsKey(nombre)) {
+            if (ambiente.getTipos().containsKey(nombre)) {
                 errorSemantico("unicidad", nombre);
             } else {
-                tablaActual.addProcedure(nombre);
+                ambiente.addProcedure(nombre);
             }
             //se crea la nueva tabla para el ambiente actual del procedimiento
-            Ambiente padre = tablaActual;
-            tablaActual = new Ambiente("TK_PROCEDURE", nombre, padre);
+            Ambiente padre = ambiente;
+            ambiente = new Ambiente("TK_PROCEDURE", nombre, padre);
             String id;
             String type;
             int i = 0;
@@ -218,12 +217,12 @@ public class AnalizadorSemantico {
                 type = aux.get(0);
                 for (int j = 1; j < aux.size(); j++) {
                     id = aux.get(j);
-                    if (tablaActual.getTipos().containsKey(id) || tablaActual.getNombre().equals(id)) {
+                    if (ambiente.getTipos().containsKey(id) || ambiente.getNombre().equals(id)) {
                         errorSemantico("unicidad", id);
                     } else {
-                        tablaActual.addIdentificador(id, type);
+                        ambiente.addVariable(id, type);
                         //se le asigna al padre 
-                        tablaActual.getPadre().addParametro(nombre, type);
+                        ambiente.getPadre().addParametro(nombre, type);
                     }
                 }
                 i++;
@@ -239,9 +238,9 @@ public class AnalizadorSemantico {
             match("TK_ENDSTNC");
             block();
             //cuando termina el block de function, se puede eliminar su tabla de simbolos
-            mostrarPila(tablaActual);
-            System.out.println("------------------ desapila ambiente " + tablaActual.getNombre() + " -----------------");
-            tablaActual = tablaActual.getPadre();
+            mostrarPila(ambiente);
+            //System.out.println("------------------ desapila ambiente " + ambiente.getNombre() + " -----------------");
+            ambiente = ambiente.getPadre();
         } else {
             errorSintactico("TK_FUNCTION");
         }
@@ -258,14 +257,14 @@ public class AnalizadorSemantico {
             match("TK_TPOINTS");
             type = type();
             //se agrega el identificador y type de esa funcion al padre
-            if (tablaActual.getTipos().containsKey(nombre)) {
+            if (ambiente.getTipos().containsKey(nombre)) {
                 errorSemantico("unicidad", nombre);
             } else {
-                tablaActual.addFunction(nombre, type);
+                ambiente.addFunction(nombre, type);
             }
             //se crea el ambiente para esa funcion
-            Ambiente p = tablaActual;
-            tablaActual = new Ambiente("TK_FUNCTION", nombre, p);
+            Ambiente p = ambiente;
+            ambiente = new Ambiente("TK_FUNCTION", nombre, p);
             //se asignan los parametros a la funcion, y se insertan los tipos de 
             //los parametros en el padre
             String id;
@@ -276,12 +275,12 @@ public class AnalizadorSemantico {
                 type = aux.get(0);
                 for (int j = 1; j < aux.size(); j++) {
                     id = aux.get(j);
-                    if (tablaActual.getTipos().containsKey(id) || tablaActual.getNombre().equals(id)) {
+                    if (ambiente.getTipos().containsKey(id) || ambiente.getNombre().equals(id)) {
                         errorSemantico("unicidad", id);
                     } else {
-                        tablaActual.addIdentificador(id, type);
+                        ambiente.addVariable(id, type);
                         //se le asigna al padre 
-                        tablaActual.getPadre().addParametro(nombre, type);
+                        ambiente.getPadre().addParametro(nombre, type);
                     }
                 }
                 i++;
@@ -434,17 +433,17 @@ public class AnalizadorSemantico {
     private void simple_statement_1(String id) {
         switch (preanalisis.getNombre()) {
             case "TK_ASSIGN":
-                String type = tablaActual.getType(id);
+                String type = ambiente.getTipo(id);
                 //verificar si el identificador es un identificador declarado en el ambiente,
                 //o es un identificador que sirve como retorno dentro de una funcion.
-                if (id.equalsIgnoreCase(tablaActual.getNombre())) {
-                    if (tablaActual.getTypeEnv().equals("TK_PROCEDURE")) {
+                if (id.equalsIgnoreCase(ambiente.getNombre())) {
+                    if (ambiente.getTipoAmbiente().equals("TK_PROCEDURE")) {
                         errorSemantico("id", "El identificador no es valido");
-                    } else if (tablaActual.getTypeEnv().equals("TK_FUNCTION")) {
+                    }/* else if (ambiente.getTipoAmbiente().equals("TK_FUNCTION")) {
                         System.out.println("Asignacion de retorno "
                                 + "dentro de una funcion en la linea " + lexico.getNroLinea() + ".");
-                    }
-                } else if (type != null && tablaActual.getParametros(id) != null) {
+                    }*/
+                } else if (type != null && ambiente.getParametros(id) != null) {
                     //puede que sea un identificador declarado, pero que sea una funcion o procedimiento dentro del ambiente.
                     errorSemantico("id", "El identificador " + id + " no es valido para una asignacion");
                 }
@@ -460,7 +459,7 @@ public class AnalizadorSemantico {
             default:
                 //si entra aca es porque la forma de la sentencia es "identificador;". 
                 //Verificar que ese id sea una funcion sin parametros.
-                if (tablaActual.getParametros(id) == null) {
+                if (ambiente.getParametros(id) == null) {
                     errorSemantico("no_subrutina", "El identificador '" + id + "' no corresponde a una subrutina declarada. ¿Faltan argumentos?");
                 }
         }
@@ -498,7 +497,7 @@ public class AnalizadorSemantico {
             LinkedList<String> types = new LinkedList<>();
             call_procedure_or_function_1(types);
             if (!id.equalsIgnoreCase("TK_WRITE") && !id.equalsIgnoreCase("TK_READ")) {
-                boolean res = tablaActual.equals(id, types);
+                boolean res = ambiente.equals(id, types);
                 if (!res) {
                     errorSemantico("call", "La lista de parametros no coincide con la definicion de la subrutina");
                 }
@@ -647,7 +646,7 @@ public class AnalizadorSemantico {
         if (preanalisis.getNombre().equals("TK_BOOL_OP_AND")) {
             match("TK_BOOL_OP_AND");
             String type2 = expression_rel();
-           if (!((type.equalsIgnoreCase(type2)) && type.equalsIgnoreCase("TK_TYPE_BOOL"))) {
+            if (!((type.equalsIgnoreCase(type2)) && type.equalsIgnoreCase("TK_TYPE_BOOL"))) {
                 errorSemantico("type", type + " y " + type2 + " no aplicables a operador AND");
             }
             type = "TK_TYPE_BOOL";
@@ -785,7 +784,7 @@ public class AnalizadorSemantico {
         switch (preanalisis.getNombre()) {
             case "TK_ID":
                 String id = identifier();
-                type = tablaActual.getType(id);
+                type = ambiente.getTipo(id);
                 if (type == null) {
                     errorSemantico("id", "Identificador no declarado");
                 }
@@ -1043,7 +1042,7 @@ public class AnalizadorSemantico {
 
     private void mostrarPila(Ambiente tabla) {
         if (tabla != null) {
-            System.out.println("Ambiente: " + tabla.getNombre() + ": \n" + tabla.toString() + "\n");
+            //System.out.println("Ambiente: " + tabla.getNombre() + ": \n" + tabla.toString() + "\n");
             mostrarPila(tabla.getPadre());
         }
     }

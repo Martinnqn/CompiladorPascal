@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package compiladorpascal.semantico;
 
 import java.util.HashMap;
@@ -11,13 +6,14 @@ import java.util.Map;
 
 /**
  *
- * @author Martin
+ * @author Martin Bermudez y Giuliano Marinelli
  */
 public class Ambiente {
 
-    Ambiente padre; //ambiente padre
+    //ambiente padre
+    Ambiente padre;
     //puede ser program, function o procedure
-    private String typeEnv;
+    private String tipoAmbiente;
     //nombre del ambiente
     private String nombre;
     //Asocia un identificador a su type Void para procedimientos
@@ -25,23 +21,25 @@ public class Ambiente {
     //Asocia un nombre de un identificador de funcion o procedimiento a su lista 
     //de parametros (solo el type de los parametros), como <nombreFuncion, parametros>
     private HashMap<String, LinkedList<String>> parametros;
-    //identificador que esta en conflicto de unicidad
-    private String identConflicto;
 
-    public Ambiente(String type, String nam, Ambiente p) {
-        typeEnv = type;
-        padre = p;
-        nombre = nam;
-        tipos = new HashMap<>();
-        parametros = new HashMap<>();
+    public Ambiente(String tipoAmbiente, String nombre, Ambiente padre) {
+        this.tipoAmbiente = tipoAmbiente;
+        this.padre = padre;
+        this.nombre = nombre;
+        this.tipos = new HashMap<>();
+        this.parametros = new HashMap<>();
     }
 
-    public String getTypeEnv() {
-        return typeEnv;
+    public Ambiente getPadre() {
+        return padre;
     }
 
-    public void setTypeEnv(String typeEnv) {
-        this.typeEnv = typeEnv;
+    public String getTipoAmbiente() {
+        return tipoAmbiente;
+    }
+
+    public void setTipoAmbiente(String tipoAmbiente) {
+        this.tipoAmbiente = tipoAmbiente;
     }
 
     public String getNombre() {
@@ -56,42 +54,19 @@ public class Ambiente {
      * Devuelve una lista de parametros para el identificador dado. Si el ident
      * no es una subrutina entonces devuelve null
      *
-     * @param ident
-     * @return
-     */
-    public LinkedList<String> getParametros(String ident) {
-        return parametros.get(ident);
-    }
-
-    public void setParametros(String identificador, LinkedList<String> param) {
-        parametros.put(identificador, param);
-    }
-
-    public void addParametro(String identificador, String type) {
-        parametros.get(identificador).add(type);
-    }
-
-    public String getConflicto() {
-        return identConflicto;
-    }
-
-    public Ambiente getPadre() {
-        return padre;
-    }
-
-    /**
-     * Devuelve el tipo de un identificador. Se recorre los ancestros del
-     * identificador hasta hallarlo o hasta null.
-     *
      * @param id
      * @return
      */
-    public String getType(String id) {
-        String type = tipos.get(id);
-        if (type == null && padre != null) {
-            type = padre.getType(id);
-        }
-        return type;
+    public LinkedList<String> getParametros(String id) {
+        return parametros.get(id);
+    }
+
+    public void setParametros(String id, LinkedList<String> parametros) {
+        this.parametros.put(id, parametros);
+    }
+
+    public void addParametro(String id, String tipo) {
+        parametros.get(id).add(tipo);
     }
 
     /**
@@ -99,11 +74,11 @@ public class Ambiente {
      *
      * @param id
      * @param clase
-     * @param type
+     * @param tipo
      * @return
      */
-    public void addIdentificador(String id, String type) {
-        tipos.put(id, type);
+    public void addVariable(String id, String tipo) {
+        tipos.put(id, tipo);
     }
 
     /**
@@ -111,10 +86,10 @@ public class Ambiente {
      * vacios.
      *
      * @param id
-     * @param type
+     * @param tipo
      */
-    public void addFunction(String id, String type) {
-        tipos.put(id, type);
+    public void addFunction(String id, String tipo) {
+        tipos.put(id, tipo);
         parametros.put(id, new LinkedList<>());
     }
 
@@ -126,6 +101,21 @@ public class Ambiente {
     public void addProcedure(String id) {
         tipos.put(id, "VOID");
         parametros.put(id, new LinkedList<>());
+    }
+
+    /**
+     * Devuelve el tipo de un identificador. Se recorre los ancestros del
+     * identificador hasta hallarlo o hasta null.
+     *
+     * @param id
+     * @return
+     */
+    public String getTipo(String id) {
+        String tipo = tipos.get(id);
+        if (tipo == null && padre != null) {
+            tipo = padre.getTipo(id);
+        }
+        return tipo;
     }
 
     /**
