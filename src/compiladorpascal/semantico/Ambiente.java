@@ -151,20 +151,24 @@ public class Ambiente {
     @Override
     public String toString() {
         String res = "";
-        for (Map.Entry<String, String> entry : tipos.entrySet()) {
-            String ident = entry.getKey();
-            String type = entry.getValue();
-            if (type.equals("VOID")) {
-                res += "procedure " + ident + " (" + parametros.get(ident).toString() + "), ";
-            } else {
-                if (parametros.get(ident) != null) {
-                    res += "funcion " + ident + " (" + parametros.get(ident).toString() + "): " + tipos.get(ident) + ", ";
+        if (!tipos.isEmpty()) {
+            for (Map.Entry<String, String> entry : tipos.entrySet()) {
+                String ident = entry.getKey();
+                String type = entry.getValue();
+                if (type.equals("VOID")) {
+                    res += "procedure " + ident + " (" + parametros.get(ident).toString() + "), ";
                 } else {
-                    res += "identificador " + ident + ":" + type + ", ";
+                    if (parametros.get(ident) != null) {
+                        res += "funcion " + ident + " (" + parametros.get(ident).toString() + "): " + tipos.get(ident) + ", ";
+                    } else {
+                        res += "identificador " + ident + ":" + type + ", ";
+                    }
                 }
             }
+            res = res.substring(0, res.length() - 2);
+        } else {
+            res = "sin identificadores locales.";
         }
-        res = res.substring(0, res.length() - 2);
         return res;
     }
 }
