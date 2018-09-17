@@ -58,27 +58,29 @@ public class Ambiente {
      * @return
      */
     public LinkedList<String> getParametros(String id) {
-        return parametros.get(id);
+        LinkedList<String> par = parametros.get(id.toUpperCase());
+        if (par == null && padre != null){
+            par = padre.getParametros(id);
+        }
+        return par;
     }
 
     public void setParametros(String id, LinkedList<String> parametros) {
-        this.parametros.put(id, parametros);
+        this.parametros.put(id.toUpperCase(), parametros);
     }
 
     public void addParametro(String id, String tipo) {
-        parametros.get(id).add(tipo);
+        parametros.get(id.toUpperCase()).add(tipo.toUpperCase());
     }
 
     /**
      * Asocia un identificador a su type.
      *
      * @param id
-     * @param clase
      * @param tipo
-     * @return
      */
     public void addVariable(String id, String tipo) {
-        tipos.put(id, tipo);
+        tipos.put(id.toUpperCase(), tipo.toUpperCase());
     }
 
     /**
@@ -89,8 +91,8 @@ public class Ambiente {
      * @param tipo
      */
     public void addFunction(String id, String tipo) {
-        tipos.put(id, tipo);
-        parametros.put(id, new LinkedList<>());
+        tipos.put(id.toUpperCase(), tipo.toUpperCase());
+        parametros.put(id.toUpperCase(), new LinkedList<>());
     }
 
     /**
@@ -99,8 +101,8 @@ public class Ambiente {
      * @param id
      */
     public void addProcedure(String id) {
-        tipos.put(id, "VOID");
-        parametros.put(id, new LinkedList<>());
+        tipos.put(id.toUpperCase(), "VOID");
+        parametros.put(id.toUpperCase(), new LinkedList<>());
     }
 
     /**
@@ -111,7 +113,7 @@ public class Ambiente {
      * @return
      */
     public String getTipo(String id) {
-        String tipo = tipos.get(id);
+        String tipo = tipos.get(id.toUpperCase());
         if (tipo == null && padre != null) {
             tipo = padre.getTipo(id);
         }
@@ -129,13 +131,13 @@ public class Ambiente {
      */
     public boolean equals(String ident, LinkedList<String> param) {
         boolean res = false;
-        LinkedList<String> param2 = parametros.get(ident);
+        LinkedList<String> param2 = parametros.get(ident.toUpperCase());
         if (param2 != null) {
             if (param2.size() == param.size()) {
                 int i = 0;
                 res = true;
                 while (i < param2.size() && res) {
-                    res = param2.get(i).equals(param.get(i));
+                    res = param2.get(i).equalsIgnoreCase(param.get(i));
                     i++;
                 }
             }
@@ -156,10 +158,10 @@ public class Ambiente {
                 String ident = entry.getKey();
                 String type = entry.getValue();
                 if (type.equals("VOID")) {
-                    res += "procedure " + ident + " (" + parametros.get(ident).toString() + "), ";
+                    res += "procedure " + ident + " (" + parametros.get(ident.toUpperCase()).toString() + "), ";
                 } else {
-                    if (parametros.get(ident) != null) {
-                        res += "funcion " + ident + " (" + parametros.get(ident).toString() + "): " + tipos.get(ident) + ", ";
+                    if (parametros.get(ident.toUpperCase()) != null) {
+                        res += "funcion " + ident + " (" + parametros.get(ident.toUpperCase()).toString() + "): " + tipos.get(ident.toUpperCase()) + ", ";
                     } else {
                         res += "identificador " + ident + ":" + type + ", ";
                     }

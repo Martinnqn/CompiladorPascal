@@ -141,7 +141,7 @@ public class AnalizadorSemantico {
             //carga los identificadores y sus tipos.
             for (String id : idents) {
                 //chequear unicidad
-                if (ambiente.getTipos().containsKey(id) || ambiente.getNombre().equals(id)) {
+                if (ambiente.getTipos().containsKey(id.toUpperCase()) || ambiente.getNombre().equalsIgnoreCase(id)) {
                     errorSemantico("unicidad", id);
                 } else {
                     ambiente.addVariable(id, type);
@@ -200,7 +200,7 @@ public class AnalizadorSemantico {
             LinkedList<LinkedList<String>> listaParametros = new LinkedList<>();
             parameters(listaParametros);
             //se agrega el identificador al padre
-            if (ambiente.getTipos().containsKey(nombre)) {
+            if (ambiente.getTipos().containsKey(nombre.toUpperCase())) {
                 errorSemantico("unicidad", nombre);
             } else {
                 ambiente.addProcedure(nombre);
@@ -217,7 +217,7 @@ public class AnalizadorSemantico {
                 type = aux.get(0);
                 for (int j = 1; j < aux.size(); j++) {
                     id = aux.get(j);
-                    if (ambiente.getTipos().containsKey(id) || ambiente.getNombre().equals(id)) {
+                    if (ambiente.getTipos().containsKey(id.toUpperCase()) || ambiente.getNombre().equalsIgnoreCase(id)) {
                         errorSemantico("unicidad", id);
                     } else {
                         ambiente.addVariable(id, type);
@@ -257,7 +257,7 @@ public class AnalizadorSemantico {
             match("TK_TPOINTS");
             type = type();
             //se agrega el identificador y type de esa funcion al padre
-            if (ambiente.getTipos().containsKey(nombre)) {
+            if (ambiente.getTipos().containsKey(nombre.toUpperCase())) {
                 errorSemantico("unicidad", nombre);
             } else {
                 ambiente.addFunction(nombre, type);
@@ -275,7 +275,7 @@ public class AnalizadorSemantico {
                 type = aux.get(0);
                 for (int j = 1; j < aux.size(); j++) {
                     id = aux.get(j);
-                    if (ambiente.getTipos().containsKey(id) || ambiente.getNombre().equals(id)) {
+                    if (ambiente.getTipos().containsKey(id.toUpperCase()) || ambiente.getNombre().equalsIgnoreCase(id)) {
                         errorSemantico("unicidad", id);
                     } else {
                         ambiente.addVariable(id, type);
@@ -314,8 +314,8 @@ public class AnalizadorSemantico {
     }
 
     private void parameter_declaration_list_1(LinkedList<LinkedList<String>> listaParametros) {
-        if (preanalisis.getNombre().equals("TK_COMMA")) {
-            match("TK_COMMA");
+        if (preanalisis.getNombre().equals("TK_ENDSTNC")) {
+            match("TK_ENDSTNC");
             parameter_declaration_list(listaParametros);
         }
     }
@@ -424,12 +424,6 @@ public class AnalizadorSemantico {
         }
     }
 
-    /**
-     * Devuelve un type = null si no entra a ningun case.
-     *
-     * @param id
-     * @return
-     */
     private void simple_statement_1(String id) {
         switch (preanalisis.getNombre()) {
             case "TK_ASSIGN":
@@ -458,9 +452,11 @@ public class AnalizadorSemantico {
                 break;
             default:
                 //si entra aca es porque la forma de la sentencia es "identificador;". 
-                //Verificar que ese id sea una funcion sin parametros.
+                //Verificar que ese id sea una funcion/procedimiento sin parametros.
                 if (ambiente.getParametros(id) == null) {
-                    errorSemantico("no_subrutina", "El identificador '" + id + "' no corresponde a una subrutina declarada. ¿Faltan argumentos?");
+                    errorSemantico("no_subrutina", "El identificador '" + id + "' no corresponde a una subrutina declarada.");
+                } else if (ambiente.getParametros(id) != null && !ambiente.getParametros(id).isEmpty()) {
+                    errorSemantico("call", "La subrutina '" + id + "' requiere argumentos");
                 }
         }
     }
@@ -494,10 +490,36 @@ public class AnalizadorSemantico {
     private void call_procedure_or_function(String id) {
         if (preanalisis.getNombre().equals("TK_OPAR")) {
             match("TK_OPAR");
-            LinkedList<String> types = new LinkedList<>();
-            call_procedure_or_function_1(types);
-            if (!id.equalsIgnoreCase("TK_WRITE") && !id.equalsIgnoreCase("TK_READ")) {
-                boolean res = ambiente.equals(id, types);
+            LinkedList<String> list = new LinkedList<>();
+            if (id.equalsIgnoreCase("TK_WRITE")) {
+                call_procedure_or_function_1(list);
+                if (list.size() != 1) {
+                    errorSemantico("WRITE", "Write debe recibir un parametro");
+                } else if (!list.get(0).equalsIgnoreCase("TK_TYPE_INT")) {
+                    errorSemantico("WRITE", "Procedimiento Write solo acepta expresiones de tipo integer.");
+                }
+            } else if (id.equalsIgnoreCase("TK_READ")) {
+                identifier_list(list);
+                if (list.isEmpty()) {
+                    errorSemantico("READ", "Read debe recibir al menos un parametro");
+                } else {
+                    for (String var : list) {
+                        if (ambiente.getTipo(var) != null) {
+                            if (!ambiente.getTipo(var).equalsIgnoreCase("TK_TYPE_INT")) {
+                                errorSemantico("READ", "Procedimiento Read solo acepta "
+                                        + "parametros de tipo integer. Identificador '" + var
+                                        + "' no es integer");
+                            } else if (ambiente.getParametros(var) != null) {
+                                errorSemantico("READ", "Procedimiento Read no puede recibir la subrutina '" + var + "' por parámetro.");
+                            }
+                        } else {
+                            errorSemantico("id", "Identificador '" + var + "' no declarado");
+                        }
+                    }
+                }
+            } else {
+                call_procedure_or_function_1(list);
+                boolean res = ambiente.equals(id, list);
                 if (!res) {
                     errorSemantico("call", "La lista de parametros no coincide con la definicion de la subrutina");
                 }
@@ -826,6 +848,14 @@ public class AnalizadorSemantico {
     private void factor_1(String id) {
         if (preanalisis.getNombre().equals("TK_OPAR")) {
             call_procedure_or_function(id);
+        } else {
+            //si no tiene parentesis hay que verificar que el identificador no sea una funcion,
+            //o que sea una funcion con cero parametros
+            if (ambiente.getParametros(id) != null) {
+                if (!ambiente.getParametros(id).isEmpty()) {
+                    errorSemantico("call", "La lista de parametros no coincide con la definicion de la subrutina");
+                }
+            }
         }
     }
 
