@@ -32,7 +32,7 @@ public class AnalizadorSemantico {
             //System.out.print("<" + preanalisis.getNombre() + ">");
             preanalisis = lexico.tokenSiguiente();
             if (preanalisis == null && !terminal.equals("TK_POINT")) {
-                errorSintactico();
+                errorSintactico("");
             }
         } else {
             errorSintactico(terminal);
@@ -49,7 +49,7 @@ public class AnalizadorSemantico {
             //se elimina la  tabla de simbolos del programa
             ambiente = null;
         } else {
-            errorSintactico("TK_PROGRAM");
+            errorSintactico("inicio del programa (program)");
         }
     }
 
@@ -61,7 +61,7 @@ public class AnalizadorSemantico {
             ambiente = new Ambiente("TK_PROGRAM", nombre, null);
             match("TK_ENDSTNC");
         } else {
-            errorSintactico("TK_PROGRAM");
+            errorSintactico("inicio del programa (program)");
         }
     }
 
@@ -77,7 +77,7 @@ public class AnalizadorSemantico {
                 multiple_statement();
                 break;
             default:
-                errorSintactico("TK_VAR o TK_PROCEDURE o TK_FUNCTION o TK_BEGIN");
+                errorSintactico("la declaracion o comienzo de un bloque (begin, var, procedure o function)");
                 break;
         }
     }
@@ -93,7 +93,7 @@ public class AnalizadorSemantico {
                 declaration_block_1();
                 break;
             default:
-                errorSintactico("TK_VAR o TK_PROCEDURE o TK_FUNCTION");
+                errorSintactico("la declaracion de un bloque (var, procedure o function)");
                 break;
         }
     }
@@ -112,7 +112,7 @@ public class AnalizadorSemantico {
             match("TK_VAR");
             variable_declaration_list();
         } else {
-            errorSintactico("TK_VAR");
+            errorSintactico("la declaracion de un bloque de variables (var)");
         }
     }
 
@@ -122,7 +122,7 @@ public class AnalizadorSemantico {
             match("TK_ENDSTNC");
             variable_declaration_list_1();
         } else {
-            errorSintactico("TK_ID");
+            errorSintactico("un identificador");
         }
     }
 
@@ -148,7 +148,7 @@ public class AnalizadorSemantico {
                 }
             }
         } else {
-            errorSintactico("TK_ID");
+            errorSintactico("un identificador");
         }
     }
 
@@ -165,7 +165,7 @@ public class AnalizadorSemantico {
                 procedure_and_function_declaration_list_1();
                 break;
             default:
-                errorSintactico("TK_PROCEDURE o TK_FUNCTION");
+                errorSintactico("la declaracion de un bloque de procedimiento o funcion (procedure o function)");
                 break;
         }
     }
@@ -189,7 +189,7 @@ public class AnalizadorSemantico {
             //System.out.println("------------------ desapila ambiente " + ambiente.getNombre() + " -----------------");
             ambiente = ambiente.getPadre();
         } else {
-            errorSintactico("TK_PROCEDURE");
+            errorSintactico("la declaracion de un bloque de procedimiento (procedure)");
         }
     }
 
@@ -228,7 +228,7 @@ public class AnalizadorSemantico {
                 i++;
             }
         } else {
-            errorSintactico("TK_PROCEDURE");
+            errorSintactico("la declaracion de un bloque de procedimiento (procedure)");
         }
     }
 
@@ -242,7 +242,7 @@ public class AnalizadorSemantico {
             //System.out.println("------------------ desapila ambiente " + ambiente.getNombre() + " -----------------");
             ambiente = ambiente.getPadre();
         } else {
-            errorSintactico("TK_FUNCTION");
+            errorSintactico("la declaracion de un bloque de funcion (function)");
         }
     }
 
@@ -286,7 +286,7 @@ public class AnalizadorSemantico {
                 i++;
             }
         } else {
-            errorSintactico("TK_FUNCTION");
+            errorSintactico("la declaracion de un bloque de funcion (function)");
         }
     }
 
@@ -309,7 +309,7 @@ public class AnalizadorSemantico {
             parameter_declaration(listaParametros);
             parameter_declaration_list_1(listaParametros);
         } else {
-            errorSintactico("TK_ID");
+            errorSintactico("un identificador");
         }
     }
 
@@ -335,7 +335,7 @@ public class AnalizadorSemantico {
             idents.addFirst(type);
             listaParametros.add(idents);
         } else {
-            errorSintactico("TK_ID");
+            errorSintactico("el comienzo de un bloque (begin)");
         }
     }
 
@@ -360,7 +360,7 @@ public class AnalizadorSemantico {
             statement_list();
             match("TK_END");
         } else {
-            errorSintactico("TK_BEGIN");
+            errorSintactico("el comienzo de un bloque (begin)");
         }
     }
 
@@ -375,7 +375,7 @@ public class AnalizadorSemantico {
                 statement_list_1();
                 break;
             default:
-                errorSintactico("TK_ID o TK_WRITE o TK_READ o TK_IF o TK_WHILE");
+                errorSintactico("una sentencia de control, repetitiva, asignacion o llamada a prodedimiento o funcion");
                 break;
         }
     }
@@ -399,7 +399,7 @@ public class AnalizadorSemantico {
                 structured_statement();
                 break;
             default:
-                errorSintactico("TK_ID o TK_WRITE o TK_READ o TK_IF o TK_WHILE");
+                errorSintactico("una sentencia de control, repetitiva, asignacion o llamada a prodedimiento o funcion");
                 break;
         }
     }
@@ -419,7 +419,7 @@ public class AnalizadorSemantico {
                 call_procedure_or_function("TK_READ");
                 break;
             default:
-                errorSintactico("TK_ID o TK_WRITE o TK_READ");
+                errorSintactico("una sentencia de asignacion o llamada a prodedimiento o funcion");
                 break;
         }
     }
@@ -470,7 +470,7 @@ public class AnalizadorSemantico {
                 repetitive_statement();
                 break;
             default:
-                errorSintactico("TK_IF o TK_WHILE");
+                errorSintactico("una sentencia de control o repetitiva");
                 break;
         }
     }
@@ -483,7 +483,7 @@ public class AnalizadorSemantico {
                 errorSemantico("type", "Se esperaba un " + type1 + " pero se encontró " + type2);
             }
         } else {
-            errorSintactico("TK_ASSIGN");
+            errorSintactico("una sentencia de asignacion");
         }
     }
 
@@ -526,7 +526,7 @@ public class AnalizadorSemantico {
             }
             match("TK_CPAR");
         } else {
-            errorSintactico("TK_OPAR");
+            errorSintactico("una declaracion de parametros de procediento o funcion");
         }
     }
 
@@ -556,7 +556,7 @@ public class AnalizadorSemantico {
             statement_block();
             else_statement();
         } else {
-            errorSintactico("TK_IF");
+            errorSintactico("una sentencia de control");
         }
     }
 
@@ -578,7 +578,7 @@ public class AnalizadorSemantico {
             match("TK_DO");
             statement_block();
         } else {
-            errorSintactico("TK_WHILE");
+            errorSintactico("una sentencia de repetitiva");
         }
     }
 
@@ -596,7 +596,7 @@ public class AnalizadorSemantico {
                 expression_list_1(types);
                 break;
             default:
-                errorSintactico("TK_ID o TK_OPAR o TK_ADD_OP_REST o TK_NOT_OP o TK_BOOLEAN_TRUE o TK_BOOLEAN_FALSE o TK_NUMBER");
+                errorSintactico("una expresion aritmetica o relacional");
                 break;
         }
     }
@@ -625,7 +625,7 @@ public class AnalizadorSemantico {
                 /*como este es el procedimiento más general desde el cual se producen
                 las expresiones, se puede mandar un mensaje diciendo que es lo que
                 se esperaba.*/
-                errorSintactico("una expresión");
+                errorSintactico("una expresion aritmetica o relacional");
                 break;
         }
         return type;
@@ -658,7 +658,7 @@ public class AnalizadorSemantico {
                 type = expression_and_1(type);
                 break;
             default:
-                errorSintactico("una expresión");
+                errorSintactico("una expresion aritmetica o relacional");
                 break;
         }
         return type;
@@ -691,7 +691,7 @@ public class AnalizadorSemantico {
                 type = expression_rel_1(type);
                 break;
             default:
-                errorSintactico("una expresión");
+                errorSintactico("una expresion aritmetica o relacional");
                 break;
         }
         return type;
@@ -743,7 +743,7 @@ public class AnalizadorSemantico {
                 type = expression_add_1(type);
                 break;
             default:
-                errorSintactico("una expresión");
+                errorSintactico("una expresion aritmetica o relacional");
                 break;
         }
         return type;
@@ -779,7 +779,7 @@ public class AnalizadorSemantico {
                 type = expression_mult_1(type);
                 break;
             default:
-                errorSintactico("una expresión");
+                errorSintactico("una expresion aritmetica o relacional");
                 break;
         }
         return type;
@@ -839,7 +839,7 @@ public class AnalizadorSemantico {
                 type = literal();
                 break;
             default:
-                errorSintactico("un factor");
+                errorSintactico("una expresion aritmetica o relacional");
                 break;
         }
         return type;
@@ -897,7 +897,7 @@ public class AnalizadorSemantico {
                 match("TK_NOT_OP");
                 break;
             default:
-                errorSintactico("TK_ADD_OP_REST o TK_NOT_OP");
+                errorSintactico("un operador de negacion (- o not)");
                 break;
         }
         return op;
@@ -913,7 +913,7 @@ public class AnalizadorSemantico {
                 match("TK_ADD_OP_REST");
                 break;
             default:
-                errorSintactico("TK_ADD_OP_SUM o TK_ADD_OP_REST");
+                errorSintactico("un operador de adicion o substraccion");
                 break;
         }
         return op;
@@ -929,7 +929,7 @@ public class AnalizadorSemantico {
                 match("TK_MULT_OP_DIV");
                 break;
             default:
-                errorSintactico("TK_MULT_OP_POR o TK_MULT_OP_DIV");
+                errorSintactico("un operador de multiplicacion o division");
                 break;
         }
         return op;
@@ -945,7 +945,7 @@ public class AnalizadorSemantico {
                 match("TK_TYPE_BOOL");
                 break;
             default:
-                errorSintactico("un tipo de dato");
+                errorSintactico("un tipo de dato (boolean o integer)");
                 break;
         }
         return type;
@@ -959,7 +959,7 @@ public class AnalizadorSemantico {
             vars.add(val);
             identifier_list_1(vars);
         } else {
-            errorSintactico("TK_ID");
+            errorSintactico("un identificador");
         }
     }
 
@@ -976,7 +976,7 @@ public class AnalizadorSemantico {
             name = preanalisis.getValor();
             match("TK_ID");
         } else {
-            errorSintactico("TK_ID");
+            errorSintactico("un identificador");
         }
         return name;
     }
@@ -995,7 +995,7 @@ public class AnalizadorSemantico {
                 number();
                 break;
             default:
-                errorSintactico("TK_BOOLEAN_TRUE o TK_BOOLEAN_FALSE o TK_NUMBER");
+                errorSintactico("un literal booleano o numerico");
                 break;
         }
         return type;
@@ -1006,7 +1006,7 @@ public class AnalizadorSemantico {
             preanalisis.getNombre();
             match("TK_NUMBER");
         } else {
-            errorSintactico("TK_NUMBER");
+            errorSintactico("un literal numerico");
         }
     }
 
@@ -1024,7 +1024,7 @@ public class AnalizadorSemantico {
                 match("TK_BOOLEAN_FALSE");
                 break;
             default:
-                errorSintactico("TK_BOOLEAN_TRUE o TK_BOOLEAN_FALSE");
+                errorSintactico("un literal booleano");
                 break;
         }
     }
@@ -1039,35 +1039,28 @@ public class AnalizadorSemantico {
             throw new RuntimeException("semantico", new Throwable("\nError semantico: linea " + lexico.getNroLinea()
                     + ".\nIdentificador " + msg + " ya declarado en el ambiente."));
         } else {
-            throw new RuntimeException("semantico", new Throwable("\nError semantico linea "
+            throw new RuntimeException("semantico", new Throwable("\nError semantico: linea "
                     + lexico.getNroLinea() + ".\n" + msg));
         }
     }
 
     /**
-     * Lanza un RuntimeException("semantico", Causa).
+     * Lanza un RuntimeException("sintactico", Causa).
      *
      * @param term
      */
     private void errorSintactico(String term) {
-        throw new RuntimeException("sintactico", new Throwable("\nError sintactico: linea " + lexico.getNroLinea()
-                + " posicion " + (lexico.getPos() + 1) + ".\nSimbolo de preanalisis " + preanalisis.getNombre()
-                + " no esperado. Se esperaba " + term));
-    }
-
-    /**
-     * Lanza un RuntimeException("sintactico", Causa).
-     */
-    private void errorSintactico() {
-        if (preanalisis != null) {
-            throw new RuntimeException("sintactico", new Throwable("\nError sintactico: linea " + lexico.getNroLinea()
-                    + " posicion " + (lexico.getPos() + 1) + ".\nSimbolo de preanalisis " + preanalisis.getNombre()
-                    + " no esperado."));
-        } else {
-            throw new RuntimeException("sintactico", new Throwable("\nError sintactico: linea " + lexico.getNroLinea()
+        Throwable msj = null;
+        if (term.equals("")) {
+            msj = new Throwable("\nError sintactico: linea " + lexico.getNroLinea()
                     + " posicion " + (lexico.getPos() + 1) + ".\nFin del archivo alcanzado. "
-                    + "Programa incompleto."));
+                    + "Programa incompleto.");
+        } else {
+            msj = new Throwable("\nError sintactico: linea " + lexico.getNroLinea()
+                    + " posicion " + (lexico.getPos() + 1) + ".\nSimbolo '" + preanalisis.getValor()
+                    + "' no esperado. Se esperaba " + term + ".");
         }
+        throw new RuntimeException("sintactico", msj);
     }
 
     private void mostrarPila(Ambiente tabla) {
