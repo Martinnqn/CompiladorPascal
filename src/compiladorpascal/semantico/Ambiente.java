@@ -16,18 +16,24 @@ public class Ambiente {
     private String tipoAmbiente;
     //nombre del ambiente
     private String nombre;
+    //profundidad del ambiente
+    private int profundidad;
     //Asocia un identificador a su type Void para procedimientos
     private HashMap<String, String> tipos;
     //Asocia un nombre de un identificador de funcion o procedimiento a su lista 
     //de parametros (solo el type de los parametros), como <nombreFuncion, parametros>
     private HashMap<String, LinkedList<String>> parametros;
+    //
+    private HashMap<String, Integer> profundidades;
 
     public Ambiente(String tipoAmbiente, String nombre, Ambiente padre) {
         this.tipoAmbiente = tipoAmbiente;
         this.padre = padre;
         this.nombre = nombre;
+        this.profundidad = padre != null ? padre.getProfundidad() + 1 : 0;
         this.tipos = new HashMap<>();
         this.parametros = new HashMap<>();
+        this.profundidades = new HashMap<>();
     }
 
     public Ambiente getPadre() {
@@ -46,6 +52,10 @@ public class Ambiente {
         return nombre;
     }
 
+    public int getProfundidad() {
+        return profundidad;
+    }
+
     public HashMap<String, String> getTipos() {
         return tipos;
     }
@@ -59,7 +69,7 @@ public class Ambiente {
      */
     public LinkedList<String> getParametros(String id) {
         LinkedList<String> par = parametros.get(id.toUpperCase());
-        if (par == null && padre != null){
+        if (par == null && padre != null) {
             par = padre.getParametros(id);
         }
         return par;
@@ -79,8 +89,9 @@ public class Ambiente {
      * @param id
      * @param tipo
      */
-    public void addVariable(String id, String tipo) {
+    public void addVariable(String id, String tipo, int profundidad) {
         tipos.put(id.toUpperCase(), tipo.toUpperCase());
+        profundidades.put(id.toUpperCase(), profundidad);
     }
 
     /**
@@ -118,6 +129,18 @@ public class Ambiente {
             tipo = padre.getTipo(id);
         }
         return tipo;
+    }
+
+    public int getProfundidad(String id) {
+        int profundidad = profundidades.get(id.toUpperCase());
+        if (profundidad == 0 && padre != null) {
+            profundidad = padre.getProfundidad(id);
+        }
+        return profundidad;
+    }
+
+    public int getDir(String id) {
+        return 100;
     }
 
     /**

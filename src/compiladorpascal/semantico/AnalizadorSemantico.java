@@ -2,6 +2,7 @@ package compiladorpascal.semantico;
 
 import compiladorpascal.lexico.*;
 import java.util.LinkedList;
+import java.util.Stack;
 
 /**
  *
@@ -12,6 +13,9 @@ public class AnalizadorSemantico {
     private Ambiente ambiente;
     private AnalizadorLexico lexico;
     private Token preanalisis;
+
+    private String mepa = "";
+    private Stack<String> pilaMepa = new Stack<>();
 
     public AnalizadorSemantico(AnalizadorLexico lex) {
         lexico = lex;
@@ -144,7 +148,7 @@ public class AnalizadorSemantico {
                 if (ambiente.getTipos().containsKey(id.toUpperCase()) || ambiente.getNombre().equalsIgnoreCase(id)) {
                     errorSemantico("unicidad", id);
                 } else {
-                    ambiente.addVariable(id, type);
+                    ambiente.addVariable(id, type, ambiente.getProfundidad());
                 }
             }
         } else {
@@ -220,7 +224,7 @@ public class AnalizadorSemantico {
                     if (ambiente.getTipos().containsKey(id.toUpperCase()) || ambiente.getNombre().equalsIgnoreCase(id)) {
                         errorSemantico("unicidad", id);
                     } else {
-                        ambiente.addVariable(id, type);
+                        ambiente.addVariable(id, type, ambiente.getProfundidad());
                         //se le asigna al padre 
                         ambiente.getPadre().addParametro(nombre, type);
                     }
@@ -278,7 +282,7 @@ public class AnalizadorSemantico {
                     if (ambiente.getTipos().containsKey(id.toUpperCase()) || ambiente.getNombre().equalsIgnoreCase(id)) {
                         errorSemantico("unicidad", id);
                     } else {
-                        ambiente.addVariable(id, type);
+                        ambiente.addVariable(id, type, ambiente.getProfundidad());
                         //se le asigna al padre 
                         ambiente.getPadre().addParametro(nombre, type);
                     }
@@ -971,6 +975,7 @@ public class AnalizadorSemantico {
     }
 
     private String identifier() {
+        mepa += "APVL " + ambiente.getProfundidad(preanalisis.getValor()) + " " + "desplazamiento de variable";
         String name = null;
         if (preanalisis.getNombre().equals("TK_ID")) {
             name = preanalisis.getValor();
@@ -983,6 +988,7 @@ public class AnalizadorSemantico {
 
     //private void identifier_1() {}
     private String literal() {
+        mepa += "APCT";
         String type = null;
         switch (preanalisis.getNombre()) {
             case "TK_BOOLEAN_TRUE":
@@ -1002,8 +1008,8 @@ public class AnalizadorSemantico {
     }
 
     private void number() {
+        mepa += " " + preanalisis.getValor() + "\n";
         if (preanalisis.getNombre().equals("TK_NUMBER")) {
-            preanalisis.getNombre();
             match("TK_NUMBER");
         } else {
             errorSintactico("un literal numerico");
@@ -1018,9 +1024,11 @@ public class AnalizadorSemantico {
     private void bool() {
         switch (preanalisis.getNombre()) {
             case "TK_BOOLEAN_TRUE":
+                mepa += " 1\n";
                 match("TK_BOOLEAN_TRUE");
                 break;
             case "TK_BOOLEAN_FALSE":
+                mepa += " 0\n";
                 match("TK_BOOLEAN_FALSE");
                 break;
             default:
