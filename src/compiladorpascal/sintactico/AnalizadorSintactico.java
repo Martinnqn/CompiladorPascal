@@ -333,7 +333,7 @@ public class AnalizadorSintactico {
             case "TK_ASSIGN":
                 assignment_statement();
                 break;
-            case "TK_OPAR":
+            default:
                 call_procedure_or_function();
                 break;
         }
@@ -367,8 +367,6 @@ public class AnalizadorSintactico {
             match("TK_OPAR");
             call_procedure_or_function_1();
             match("TK_CPAR");
-        } else {
-            error("TK_OPAR");
         }
     }
 
@@ -591,7 +589,7 @@ public class AnalizadorSintactico {
         switch (preanalisis.getNombre()) {
             case "TK_ID":
                 identifier();
-                factor_1();
+                call_procedure_or_function();
                 break;
             case "TK_OPAR":
                 match("TK_OPAR");
@@ -611,12 +609,6 @@ public class AnalizadorSintactico {
             default:
                 error("un factor");
                 break;
-        }
-    }
-
-    protected void factor_1() {
-        if (preanalisis.getNombre().equals("TK_OPAR")) {
-            call_procedure_or_function();
         }
     }
 

@@ -44,8 +44,9 @@ public class CompiladorPascal {
             try {
                 semantico.program();
                 System.out.println("\n" + fuente.getName() + ": compilación exitosa.");
+                System.out.println("\n" + semantico.getMepa());
             } catch (RuntimeException ex) {
-                //los errores lexicos y sintacticos son capturados aca.
+                //los errores lexicos, sintacticos y semanticos son capturados aca.
                 System.out.print("\n" + fuente.getName() + ": error de compilación.");
                 System.out.println(ex.getCause().getMessage());
             }
