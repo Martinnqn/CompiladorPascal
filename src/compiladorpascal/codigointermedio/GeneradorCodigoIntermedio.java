@@ -1,19 +1,28 @@
-package compiladorpascal.semantico;
+package compiladorpascal.codigointermedio;
 
+import compiladorpascal.semantico.*;
 import compiladorpascal.lexico.*;
 import java.util.LinkedList;
+import java.util.Stack;
 
 /**
  *
  * @author Martin Bermudez y Giuliano Marinelli
  */
-public class AnalizadorSemantico {
+public class GeneradorCodigoIntermedio {
 
     private Ambiente ambiente;
     private AnalizadorLexico lexico;
     private Token preanalisis;
 
-    public AnalizadorSemantico(AnalizadorLexico lex) {
+    private String mepa = "";
+    private int mepaLabel = 0;
+
+    public String getMepa() {
+        return mepa;
+    }
+
+    public GeneradorCodigoIntermedio(AnalizadorLexico lex) {
         lexico = lex;
         preanalisis = lexico.tokenSiguiente();
     }
@@ -41,6 +50,7 @@ public class AnalizadorSemantico {
 
     public void program() {
         if (preanalisis.getNombre().equals("TK_PROGRAM")) {
+            mepa += "INPP\n";
             program_heading();
             block();
             match("TK_POINT");
@@ -48,6 +58,7 @@ public class AnalizadorSemantico {
             //System.out.println("------------------ desapila ambiente del programa principal -----------------");
             //se elimina la  tabla de simbolos del programa
             ambiente = null;
+            mepa += "PARA\n";
         } else {
             errorSintactico("inicio del programa (program)");
         }
@@ -70,8 +81,11 @@ public class AnalizadorSemantico {
             case "TK_VAR":
             case "TK_PROCEDURE":
             case "TK_FUNCTION":
-                declaration_block();
+                int varCount = declaration_block();
                 multiple_statement();
+                if (varCount > 0) {
+                    mepa += "LMEM " + varCount + "\n";
+                }
                 break;
             case "TK_BEGIN":
                 multiple_statement();
@@ -82,10 +96,14 @@ public class AnalizadorSemantico {
         }
     }
 
-    private void declaration_block() {
+    private int declaration_block() {
+        int varCount = 0;
         switch (preanalisis.getNombre()) {
             case "TK_VAR":
-                variable_declaration_block();
+                varCount = variable_declaration_block();
+                if (varCount > 0) {
+                    mepa += "RMEM " + varCount + "\n";
+                }
                 declaration_block_1();
                 break;
             case "TK_PROCEDURE":
@@ -96,6 +114,7 @@ public class AnalizadorSemantico {
                 errorSintactico("la declaracion de un bloque (var, procedure o function)");
                 break;
         }
+        return varCount;
     }
 
     private void declaration_block_1() {
@@ -107,32 +126,37 @@ public class AnalizadorSemantico {
         }
     }
 
-    private void variable_declaration_block() {
+    private int variable_declaration_block() {
+        int varCount = 0;
         if (preanalisis.getNombre().equals("TK_VAR")) {
             match("TK_VAR");
-            variable_declaration_list();
+            varCount = variable_declaration_list(0);
         } else {
             errorSintactico("la declaracion de un bloque de variables (var)");
         }
+        return varCount;
     }
 
-    private void variable_declaration_list() {
+    private int variable_declaration_list(int varCount) {
         if (preanalisis.getNombre().equals("TK_ID")) {
-            variable_declaration();
+            varCount += variable_declaration();
             match("TK_ENDSTNC");
-            variable_declaration_list_1();
+            varCount = variable_declaration_list_1(varCount);
         } else {
             errorSintactico("un identificador");
         }
+        return varCount;
     }
 
-    private void variable_declaration_list_1() {
+    private int variable_declaration_list_1(int varCount) {
         if (preanalisis.getNombre().equals("TK_ID")) {
-            variable_declaration_list();
+            varCount = variable_declaration_list(varCount);
         }
+        return varCount;
     }
 
-    private void variable_declaration() {
+    private int variable_declaration() {
+        int varCount = 0;
         if (preanalisis.getNombre().equals("TK_ID")) {
             LinkedList<String> idents = new LinkedList<>();
             identifier_list(idents);
@@ -144,12 +168,14 @@ public class AnalizadorSemantico {
                 if (ambiente.getTipos().containsKey(id.toUpperCase()) || ambiente.getNombre().equalsIgnoreCase(id)) {
                     errorSemantico("unicidad", id);
                 } else {
-                    ambiente.addVariable(id, type);
+                    ambiente.addVariable(id, type, ambiente.getProfundidad(), false);
                 }
             }
+            varCount = idents.size();
         } else {
             errorSintactico("un identificador");
         }
+        return varCount;
     }
 
     private void procedure_and_function_declaration_list() {
@@ -181,9 +207,17 @@ public class AnalizadorSemantico {
 
     private void procedure_declaration() {
         if (preanalisis.getNombre().equals("TK_PROCEDURE")) {
-            procedure_heading();
+            mepaLabel++;
+            int endProcedureLabel = mepaLabel;
+            mepa += "DSVS L" + endProcedureLabel + "\n";
+            mepaLabel++;
+            int procedureLabel = mepaLabel;
+            procedure_heading(procedureLabel);
+            mepa += "L" + procedureLabel + " ENPR " + ambiente.getProfundidad() + "\n";
             match("TK_ENDSTNC");
             block();
+            mepa += "RTPR " + ambiente.getProfundidad() + " " + ambiente.getPadre().getParametros(ambiente.getNombre()).size() + "\n";
+            mepa += "L" + endProcedureLabel + " NADA\n";
             //cuando termina el block del procedure, se puede eliminar su tabla de simbolos
             mostrarPila(ambiente);
             //System.out.println("------------------ desapila ambiente " + ambiente.getNombre() + " -----------------");
@@ -193,7 +227,7 @@ public class AnalizadorSemantico {
         }
     }
 
-    private void procedure_heading() {
+    private void procedure_heading(int procedureLabel) {
         if (preanalisis.getNombre().equals("TK_PROCEDURE")) {
             match("TK_PROCEDURE");
             String nombre = identifier();
@@ -203,11 +237,18 @@ public class AnalizadorSemantico {
             if (ambiente.getTipos().containsKey(nombre.toUpperCase())) {
                 errorSemantico("unicidad", nombre);
             } else {
-                ambiente.addProcedure(nombre);
+                ambiente.addProcedure(nombre, procedureLabel);
+            }
+            int parameterCount = 0;
+            for (LinkedList<String> listaParametro : listaParametros) {
+                for (String string : listaParametro) {
+                    parameterCount++;
+                }
+                parameterCount--;
             }
             //se crea la nueva tabla para el ambiente actual del procedimiento
             Ambiente padre = ambiente;
-            ambiente = new Ambiente("TK_PROCEDURE", nombre, padre);
+            ambiente = new Ambiente("TK_PROCEDURE", nombre, padre, procedureLabel, parameterCount);
             String id;
             String type;
             int i = 0;
@@ -220,7 +261,7 @@ public class AnalizadorSemantico {
                     if (ambiente.getTipos().containsKey(id.toUpperCase()) || ambiente.getNombre().equalsIgnoreCase(id)) {
                         errorSemantico("unicidad", id);
                     } else {
-                        ambiente.addVariable(id, type);
+                        ambiente.addVariable(id, type, ambiente.getProfundidad(), true);
                         //se le asigna al padre 
                         ambiente.getPadre().addParametro(nombre, type);
                     }
@@ -234,9 +275,17 @@ public class AnalizadorSemantico {
 
     private void function_declaration() {
         if (preanalisis.getNombre().equals("TK_FUNCTION")) {
-            function_heading();
+            mepaLabel++;
+            int endFunctionLabel = mepaLabel;
+            mepa += "DSVS L" + endFunctionLabel + "\n";
+            mepaLabel++;
+            int functionLabel = mepaLabel;
+            function_heading(functionLabel);
+            mepa += "L" + functionLabel + " ENPR " + ambiente.getProfundidad() + "\n";
             match("TK_ENDSTNC");
             block();
+            mepa += "RTPR " + ambiente.getProfundidad() + " " + ambiente.getPadre().getParametros(ambiente.getNombre()).size() + "\n";
+            mepa += "L" + endFunctionLabel + " NADA\n";
             //cuando termina el block de function, se puede eliminar su tabla de simbolos
             mostrarPila(ambiente);
             //System.out.println("------------------ desapila ambiente " + ambiente.getNombre() + " -----------------");
@@ -246,7 +295,7 @@ public class AnalizadorSemantico {
         }
     }
 
-    private void function_heading() {
+    private void function_heading(int functionLabel) {
         String nombre;
         String type;
         if (preanalisis.getNombre().equals("TK_FUNCTION")) {
@@ -260,11 +309,18 @@ public class AnalizadorSemantico {
             if (ambiente.getTipos().containsKey(nombre.toUpperCase())) {
                 errorSemantico("unicidad", nombre);
             } else {
-                ambiente.addFunction(nombre, type);
+                ambiente.addFunction(nombre, type, functionLabel);
+            }
+            int parameterCount = 0;
+            for (LinkedList<String> listaParametro : listaParametros) {
+                for (String string : listaParametro) {
+                    parameterCount++;
+                }
+                parameterCount--;
             }
             //se crea el ambiente para esa funcion
-            Ambiente p = ambiente;
-            ambiente = new Ambiente("TK_FUNCTION", nombre, p);
+            Ambiente padre = ambiente;
+            ambiente = new Ambiente("TK_FUNCTION", nombre, padre, functionLabel, parameterCount);
             //se asignan los parametros a la funcion, y se insertan los tipos de 
             //los parametros en el padre
             String id;
@@ -278,7 +334,7 @@ public class AnalizadorSemantico {
                     if (ambiente.getTipos().containsKey(id.toUpperCase()) || ambiente.getNombre().equalsIgnoreCase(id)) {
                         errorSemantico("unicidad", id);
                     } else {
-                        ambiente.addVariable(id, type);
+                        ambiente.addVariable(id, type, ambiente.getProfundidad(), true);
                         //se le asigna al padre 
                         ambiente.getPadre().addParametro(nombre, type);
                     }
@@ -445,19 +501,11 @@ public class AnalizadorSemantico {
                 if (type == null) {
                     errorSemantico("id", "Identificador no declarado.");
                 }
-                assignment_statement(type);
-                break;
-            case "TK_OPAR":
-                call_procedure_or_function(id);
+                assignment_statement(id, type);
                 break;
             default:
-                //si entra aca es porque la forma de la sentencia es "identificador;". 
-                //Verificar que ese id sea una funcion/procedimiento sin parametros.
-                if (ambiente.getParametros(id) == null) {
-                    errorSemantico("no_subrutina", "El identificador '" + id + "' no corresponde a una subrutina declarada.");
-                } else if (ambiente.getParametros(id) != null && !ambiente.getParametros(id).isEmpty()) {
-                    errorSemantico("call", "La subrutina '" + id + "' requiere argumentos");
-                }
+                call_procedure_or_function(id);
+                break;
         }
     }
 
@@ -475,13 +523,15 @@ public class AnalizadorSemantico {
         }
     }
 
-    private void assignment_statement(String type1) {
+    private void assignment_statement(String id, String type1) {
         if (preanalisis.getNombre().equals("TK_ASSIGN")) {
             match("TK_ASSIGN");
             String type2 = expression_or();
             if (!(type1.equalsIgnoreCase(type2))) {
                 errorSemantico("type", "Se esperaba un " + type1 + " pero se encontró " + type2);
             }
+            mepa += "ALVL " + ambiente.getProfundidad(id) + " " + ambiente.getOffset(id) + "\n";
+            //mepa += "ALVL " + id.toUpperCase() + "\n";
         } else {
             errorSintactico("una sentencia de asignacion");
         }
@@ -498,6 +548,7 @@ public class AnalizadorSemantico {
                 } else if (!list.get(0).equalsIgnoreCase("TK_TYPE_INT")) {
                     errorSemantico("WRITE", "Procedimiento Write solo acepta expresiones de tipo integer.");
                 }
+                mepa += "IMPR\n";
             } else if (id.equalsIgnoreCase("TK_READ")) {
                 identifier_list(list);
                 if (list.isEmpty()) {
@@ -515,19 +566,43 @@ public class AnalizadorSemantico {
                         } else {
                             errorSemantico("id", "Identificador '" + var + "' no declarado");
                         }
+                        mepa += "LEER\n";
+                        mepa += "ALVL " + ambiente.getProfundidad(var) + " " + ambiente.getOffset(var) + "\n";
+                        //mepa += "ALVL " + var.toUpperCase() + "\n";
                     }
                 }
             } else {
+                if (ambiente.getClase(id).equals("funcion")) {
+                    mepa += "RMEM 1\n";
+                }
                 call_procedure_or_function_1(list);
                 boolean res = ambiente.equals(id, list);
                 if (!res) {
                     errorSemantico("call", "La lista de parametros no coincide con la definicion de la subrutina");
                 }
+                if (ambiente.getClase(id).equals("funcion") || ambiente.getClase(id).equals("procedimiento")) {
+                    mepa += "LLPR L" + ambiente.getLabel(id) + "\n";
+                }
             }
             match("TK_CPAR");
         } else {
-            errorSintactico("una declaracion de parametros de procediento o funcion");
+            //si no tiene parentesis hay que verificar que el identificador no sea una funcion,
+            //o que sea una funcion con cero parametros
+            if (ambiente.getParametros(id) != null) {
+                if (!ambiente.getParametros(id).isEmpty()) {
+                    errorSemantico("call", "La lista de parametros no coincide con la definicion de la subrutina");
+                }
+            }
+
+            /*if (ambiente.getParametros(id) == null) {
+                errorSemantico("no_subrutina", "El identificador '" + id + "' no corresponde a una subrutina declarada.");
+            } else if (ambiente.getParametros(id) != null && !ambiente.getParametros(id).isEmpty()) {
+                errorSemantico("call", "La subrutina '" + id + "' requiere argumentos");
+            }*/
         }
+        /*else {
+            errorSintactico("una declaracion de parametros de procediento o funcion");
+        }*/
     }
 
     private void call_procedure_or_function_1(LinkedList<String> types) {
@@ -552,31 +627,49 @@ public class AnalizadorSemantico {
             if (!type.equalsIgnoreCase("TK_TYPE_BOOL") && !type.equalsIgnoreCase("boolean")) {
                 errorSemantico("if", "Se espera una expresion booleana");
             }
+            mepaLabel++;
+            int thenLable = mepaLabel;
+            mepa += "DSVF L" + thenLable + "\n";
             match("TK_THEN");
             statement_block();
-            else_statement();
+            else_statement(thenLable);
         } else {
             errorSintactico("una sentencia de control");
         }
     }
 
-    private void else_statement() {
+    private void else_statement(int thenLabel) {
         if (preanalisis.getNombre().equals("TK_ELSE")) {
+            mepaLabel++;
+            int elseLabel = mepaLabel;
+            mepa += "DSVS L" + elseLabel + "\n";
+            mepa += "L" + thenLabel + " NADA\n";
             match("TK_ELSE");
             statement_block();
+            mepa += "L" + elseLabel + " NADA\n";
+        } else {
+            mepa += "L" + thenLabel + " NADA\n";
         }
     }
 
     private void repetitive_statement() {
         if (preanalisis.getNombre().equals("TK_WHILE")) {
             match("TK_WHILE");
+            mepaLabel++;
+            int whileLabel = mepaLabel;
+            mepa += "L" + whileLabel + " NADA\n";
             String type = expression_or();
             //creo que boolean ya no es necesario. revisar.
             if (!type.equalsIgnoreCase("TK_TYPE_BOOL") && !type.equalsIgnoreCase("boolean")) {
                 errorSemantico("while", "Se espera una expresion booleana");
             }
+            mepaLabel++;
+            int doLabel = mepaLabel;
+            mepa += "DSVF L" + doLabel + "\n";
             match("TK_DO");
             statement_block();
+            mepa += "DSVS L" + whileLabel + "\n";
+            mepa += "L" + doLabel + " NADA\n";
         } else {
             errorSintactico("una sentencia de repetitiva");
         }
@@ -638,6 +731,7 @@ public class AnalizadorSemantico {
             if (!((type.equalsIgnoreCase(type2)) && type.equalsIgnoreCase("TK_TYPE_BOOL"))) {
                 errorSemantico("type", type + " y " + type2 + " no aplicables a operador OR");
             }
+            mepa += "DISJ\n";
             type = "TK_TYPE_BOOL";
             type = expression_or_1(type);
         }
@@ -671,6 +765,7 @@ public class AnalizadorSemantico {
             if (!((type.equalsIgnoreCase(type2)) && type.equalsIgnoreCase("TK_TYPE_BOOL"))) {
                 errorSemantico("type", type + " y " + type2 + " no aplicables a operador AND");
             }
+            mepa += "CONJ\n";
             type = "TK_TYPE_BOOL";
             type = expression_and_1(type);
         }
@@ -723,6 +818,26 @@ public class AnalizadorSemantico {
                         type = "TK_TYPE_BOOL";
                         break;
                 }
+                switch (op) {
+                    case "TK_REL_OP_EQ":
+                        mepa += "CMIG\n";
+                        break;
+                    case "TK_REL_OP_NEQ":
+                        mepa += "CMDG\n";
+                        break;
+                    case "TK_REL_OP_MIN":
+                        mepa += "CMME\n";
+                        break;
+                    case "TK_REL_OP_MAY":
+                        mepa += "CMMA\n";
+                        break;
+                    case "TK_REL_OP_LEQ":
+                        mepa += "CMNI\n";
+                        break;
+                    case "TK_REL_OP_GEQ":
+                        mepa += "CMYI\n";
+                        break;
+                }
                 type = expression_rel_1(type);
                 break;
         }
@@ -757,6 +872,14 @@ public class AnalizadorSemantico {
                 String type2 = expression_mult();
                 if (!((type.equalsIgnoreCase(type2)) && (type.equalsIgnoreCase("TK_TYPE_INT")))) {
                     errorSemantico("type", type + " y " + type2 + " no aplicables a operador " + op);
+                }
+                switch (op) {
+                    case "TK_ADD_OP_SUM":
+                        mepa += "SUMA\n";
+                        break;
+                    case "TK_ADD_OP_REST":
+                        mepa += "SUST\n";
+                        break;
                 }
                 type = "TK_TYPE_INT";
                 type = expression_add_1(type);
@@ -794,6 +917,14 @@ public class AnalizadorSemantico {
                 if (!((type.equalsIgnoreCase(type2)) && (type.equalsIgnoreCase("TK_TYPE_INT")))) {
                     errorSemantico("type", type + " y " + type2 + " no aplicables a operador " + op);
                 }
+                switch (op) {
+                    case "TK_MULT_OP_POR":
+                        mepa += "MULT\n";
+                        break;
+                    case "TK_MULT_OP_DIV":
+                        mepa += "DIVI\n";
+                        break;
+                }
                 type = "TK_TYPE_INT";
                 type = expression_mult_1(type);
                 break;
@@ -810,7 +941,11 @@ public class AnalizadorSemantico {
                 if (type == null) {
                     errorSemantico("id", "Identificador no declarado");
                 }
-                factor_1(id);
+                if (ambiente.getClase(id).equals("variable") || ambiente.getClase(id).equals("parametro")) {
+                    mepa += "APVL " + ambiente.getProfundidad(id) + " " + ambiente.getOffset(id) + "\n";
+                    //mepa += "APVL " + id.toUpperCase() + "\n";
+                }
+                call_procedure_or_function(id);
                 break;
             case "TK_OPAR":
                 match("TK_OPAR");
@@ -821,16 +956,21 @@ public class AnalizadorSemantico {
             case "TK_NOT_OP":
                 String op = unary_operator();
                 type = factor();
-                if (op.equals("TK_NOT_OP")) {
-                    if (!type.equalsIgnoreCase("TK_TYPE_BOOL")) {
-                        errorSemantico("type", type + " no aplicables a operador " + op);
-                    }
-                    type = "TK_TYPE_BOOL";
-                } else {
-                    if (!type.equalsIgnoreCase("TK_TYPE_INT")) {
-                        errorSemantico("type", type + " no aplicables a operador " + op);
-                    }
-                    type = "TK_TYPE_INT";
+                switch (op) {
+                    case "TK_ADD_OP_REST":
+                        if (!type.equalsIgnoreCase("TK_TYPE_BOOL")) {
+                            errorSemantico("type", type + " no aplicables a operador " + op);
+                        }
+                        type = "TK_TYPE_BOOL";
+                        mepa += "UMEN\n";
+                        break;
+                    case "TK_NOT_OP":
+                        if (!type.equalsIgnoreCase("TK_TYPE_INT")) {
+                            errorSemantico("type", type + " no aplicables a operador " + op);
+                        }
+                        type = "TK_TYPE_INT";
+                        mepa += "NEGA\n";
+                        break;
                 }
                 break;
             case "TK_BOOLEAN_TRUE":
@@ -843,20 +983,6 @@ public class AnalizadorSemantico {
                 break;
         }
         return type;
-    }
-
-    private void factor_1(String id) {
-        if (preanalisis.getNombre().equals("TK_OPAR")) {
-            call_procedure_or_function(id);
-        } else {
-            //si no tiene parentesis hay que verificar que el identificador no sea una funcion,
-            //o que sea una funcion con cero parametros
-            if (ambiente.getParametros(id) != null) {
-                if (!ambiente.getParametros(id).isEmpty()) {
-                    errorSemantico("call", "La lista de parametros no coincide con la definicion de la subrutina");
-                }
-            }
-        }
     }
 
     private String relational_operator() {
@@ -1003,7 +1129,7 @@ public class AnalizadorSemantico {
 
     private void number() {
         if (preanalisis.getNombre().equals("TK_NUMBER")) {
-            preanalisis.getNombre();
+            mepa += "APCT " + preanalisis.getValor() + "\n";
             match("TK_NUMBER");
         } else {
             errorSintactico("un literal numerico");
@@ -1018,9 +1144,11 @@ public class AnalizadorSemantico {
     private void bool() {
         switch (preanalisis.getNombre()) {
             case "TK_BOOLEAN_TRUE":
+                mepa += "APCT 1\n";
                 match("TK_BOOLEAN_TRUE");
                 break;
             case "TK_BOOLEAN_FALSE":
+                mepa += "APCT 0\n";
                 match("TK_BOOLEAN_FALSE");
                 break;
             default:

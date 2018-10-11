@@ -1,5 +1,6 @@
 package compiladorpascal;
 
+import compiladorpascal.codigointermedio.GeneradorCodigoIntermedio;
 import compiladorpascal.lexico.*;
 import compiladorpascal.semantico.AnalizadorSemantico;
 import compiladorpascal.sintactico.AnalizadorSintactico;
@@ -38,13 +39,13 @@ public class CompiladorPascal {
                 //System.out.print("<\033[32m" + token.getNombre() + "\033[30m|\033[36m" + token.getValor() + "\033[30m>");
             }*/
 //            AnalizadorSintactico sintactico = new AnalizadorSintactico(lexico);
-            AnalizadorSemantico semantico = new AnalizadorSemantico(lexico);
+             GeneradorCodigoIntermedio compilador = new GeneradorCodigoIntermedio(lexico);
 
             //se encarga de capturar los posibles errores lexicos y sintacticos.
             try {
-                semantico.program();
+                compilador.program();
                 System.out.println("\n" + fuente.getName() + ": compilación exitosa.");
-                System.out.println("\n" + semantico.getMepa());
+                System.out.println("\n" + compilador.getMepa());
             } catch (RuntimeException ex) {
                 //los errores lexicos, sintacticos y semanticos son capturados aca.
                 System.out.print("\n" + fuente.getName() + ": error de compilación.");
