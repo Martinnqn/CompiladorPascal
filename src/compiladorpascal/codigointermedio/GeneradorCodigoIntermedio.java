@@ -1,9 +1,7 @@
 package compiladorpascal.codigointermedio;
 
-import compiladorpascal.semantico.*;
 import compiladorpascal.lexico.*;
 import java.util.LinkedList;
-import java.util.Stack;
 
 /**
  *
@@ -11,7 +9,7 @@ import java.util.Stack;
  */
 public class GeneradorCodigoIntermedio {
 
-    private Ambiente ambiente;
+  private Ambiente ambiente;
     private AnalizadorLexico lexico;
     private Token preanalisis;
 
@@ -286,6 +284,10 @@ public class GeneradorCodigoIntermedio {
             block();
             mepa += "RTPR " + ambiente.getProfundidad() + " " + ambiente.getPadre().getParametros(ambiente.getNombre()).size() + "\n";
             mepa += "L" + endFunctionLabel + " NADA\n";
+            //si regresa de block y no tiene asignada un valor de retorno entonces falla la compilacion.
+            if (!ambiente.hasReturn()){
+                errorSemantico("no_return", "La funcion "+ambiente.getNombre()+" no tiene establecido un valor de retorno.");
+            }
             //cuando termina el block de function, se puede eliminar su tabla de simbolos
             mostrarPila(ambiente);
             //System.out.println("------------------ desapila ambiente " + ambiente.getNombre() + " -----------------");
@@ -489,10 +491,9 @@ public class GeneradorCodigoIntermedio {
                 if (id.equalsIgnoreCase(ambiente.getNombre())) {
                     if (ambiente.getTipoAmbiente().equals("TK_PROCEDURE")) {
                         errorSemantico("id", "El identificador no es valido");
-                    }/* else if (ambiente.getTipoAmbiente().equals("TK_FUNCTION")) {
-                        System.out.println("Asignacion de retorno "
-                                + "dentro de una funcion en la linea " + lexico.getNroLinea() + ".");
-                    }*/
+                    } else if (ambiente.getTipoAmbiente().equals("TK_FUNCTION")) {
+                        ambiente.setHasReturn(true);
+                    }
                 } else if (type != null && ambiente.getParametros(id) != null) {
                     //puede que sea un identificador declarado, pero que sea una funcion o procedimiento dentro del ambiente.
                     errorSemantico("id", "El identificador " + id + " no es valido para una asignacion");
@@ -504,7 +505,23 @@ public class GeneradorCodigoIntermedio {
                 assignment_statement(id, type);
                 break;
             default:
-                call_procedure_or_function(id);
+                if (ambiente.getParametros(id) != null) {
+                    if (ambiente.getClase(id).equalsIgnoreCase("procedimiento")){
+                    call_procedure_or_function(id);
+                    }else{
+                    //aca si es una funcion deberia liberarse 1 de memoria, que es reservado en call_procedure_or_function, 
+                    //ya que no se usa porque no es una asignacion, ni una llamada dentro de una expresion. 
+                    //call_procedure_or_function(id);
+                    //mepa += "LMEM 1\n";
+                    
+                    //Esto pasa por la definicion de la gramatica, explicar en el informe que no es bueno tratar a las funciones
+                    //y procedimientos de igual manera, ya que se usan en diferentes contextos.
+                    errorSemantico("bad_uso_funcion", "Llamada a funcion sin utilizar su valor de retorno.");
+                    }
+                } else {
+                    errorSemantico("no_subrutina", "El identificador '" + id + "' no corresponde a una subrutina declarada.");
+                }
+                
                 break;
         }
     }
@@ -561,7 +578,7 @@ public class GeneradorCodigoIntermedio {
                                         + "parametros de tipo integer. Identificador '" + var
                                         + "' no es integer");
                             } else if (ambiente.getParametros(var) != null) {
-                                errorSemantico("READ", "Procedimiento Read no puede recibir la subrutina '" + var + "' por parámetro.");
+                                errorSemantico("READ", "Procedimiento Read no puede recibir la subrutina '" + var + "' por parametro.");
                             }
                         } else {
                             errorSemantico("id", "Identificador '" + var + "' no declarado");
@@ -578,7 +595,8 @@ public class GeneradorCodigoIntermedio {
                 call_procedure_or_function_1(list);
                 boolean res = ambiente.equals(id, list);
                 if (!res) {
-                    errorSemantico("call", "La lista de parametros no coincide con la definicion de la subrutina");
+                    errorSemantico("call", "La lista de parametros no coincide con la "
+                            + "definicion de la subrutina "+id);
                 }
                 if (ambiente.getClase(id).equals("funcion") || ambiente.getClase(id).equals("procedimiento")) {
                     mepa += "LLPR L" + ambiente.getLabel(id) + "\n";
@@ -590,15 +608,17 @@ public class GeneradorCodigoIntermedio {
             //o que sea una funcion con cero parametros
             if (ambiente.getParametros(id) != null) {
                 if (!ambiente.getParametros(id).isEmpty()) {
-                    errorSemantico("call", "La lista de parametros no coincide con la definicion de la subrutina");
+                    errorSemantico("call", "La lista de parametros no coincide con la "
+                            + "definicion de la subrutina "+id);
+                } else {
+                    if (ambiente.getClase(id).equals("funcion")) {
+                        mepa += "RMEM 1\n";
+                    }
+                    mepa += "LLPR L" + ambiente.getLabel(id) + "\n";
                 }
-            }
-
-            /*if (ambiente.getParametros(id) == null) {
+            } else {
                 errorSemantico("no_subrutina", "El identificador '" + id + "' no corresponde a una subrutina declarada.");
-            } else if (ambiente.getParametros(id) != null && !ambiente.getParametros(id).isEmpty()) {
-                errorSemantico("call", "La subrutina '" + id + "' requiere argumentos");
-            }*/
+            }
         }
         /*else {
             errorSintactico("una declaracion de parametros de procediento o funcion");
@@ -613,8 +633,13 @@ public class GeneradorCodigoIntermedio {
             case "TK_NOT_OP":
             case "TK_BOOLEAN_TRUE":
             case "TK_BOOLEAN_FALSE":
+            case "TK_TYPE_BOOL":
             case "TK_NUMBER":
+            case "TK_TYPE_INT":
                 expression_list(types);
+                break;
+            default:
+                errorSintactico("una expresion aritmetica o relacional");
                 break;
         }
     }
@@ -944,8 +969,13 @@ public class GeneradorCodigoIntermedio {
                 if (ambiente.getClase(id).equals("variable") || ambiente.getClase(id).equals("parametro")) {
                     mepa += "APVL " + ambiente.getProfundidad(id) + " " + ambiente.getOffset(id) + "\n";
                     //mepa += "APVL " + id.toUpperCase() + "\n";
+                } else {
+                    if (ambiente.getClase(id).equalsIgnoreCase("funcion")) {
+                        call_procedure_or_function(id);
+                    } else {
+                        errorSemantico("bad_uso_proc", "No se permite uso de procedimientos en expresiones. Causa: retorno void.");
+                    }
                 }
-                call_procedure_or_function(id);
                 break;
             case "TK_OPAR":
                 match("TK_OPAR");

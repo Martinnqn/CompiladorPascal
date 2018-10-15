@@ -27,6 +27,8 @@ public class Ambiente {
     private int returnOffset = -4;
     //label de llamada para un procediemiento o funcion
     private int label = -1;
+    //solo util para funciones, es true si se asigno un valor de retorno para la funcion.
+    private boolean hasReturn;
 
     //Asocia un identificador a su type Void para procedimientos
     private HashMap<String, String> tipos;
@@ -81,6 +83,14 @@ public class Ambiente {
 
     public int getProfundidad() {
         return profundidad;
+    }
+
+    public boolean hasReturn() {
+        return hasReturn;
+    }
+
+    public void setHasReturn(boolean val) {
+        hasReturn = val;
     }
 
     public HashMap<String, String> getTipos() {
