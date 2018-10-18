@@ -9,17 +9,21 @@ Program Example5;
         var 
             y:integer;
         begin
-        y:=3+4;
-        f2:=y
+        y:= 3;
+        f2:=3
         end;
     begin
      x := 3;
      f1:=f2
     end;
 
-procedure pr();
+procedure pr(t:boolean);
+var a: integer;
 begin
-write(4)
+if(true)then
+    a:=3
+else
+    a:=4
 end;
 Begin
     pr;

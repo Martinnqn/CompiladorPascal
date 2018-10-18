@@ -9,7 +9,7 @@ import java.util.LinkedList;
  */
 public class GeneradorCodigoIntermedio {
 
-  private Ambiente ambiente;
+    private Ambiente ambiente;
     private AnalizadorLexico lexico;
     private Token preanalisis;
 
@@ -285,8 +285,8 @@ public class GeneradorCodigoIntermedio {
             mepa += "RTPR " + ambiente.getProfundidad() + " " + ambiente.getPadre().getParametros(ambiente.getNombre()).size() + "\n";
             mepa += "L" + endFunctionLabel + " NADA\n";
             //si regresa de block y no tiene asignada un valor de retorno entonces falla la compilacion.
-            if (!ambiente.hasReturn()){
-                errorSemantico("no_return", "La funcion "+ambiente.getNombre()+" no tiene establecido un valor de retorno.");
+            if (!ambiente.hasReturn()) {
+                errorSemantico("no_return", "La funcion " + ambiente.getNombre() + " no tiene establecido un valor de retorno.");
             }
             //cuando termina el block de function, se puede eliminar su tabla de simbolos
             mostrarPila(ambiente);
@@ -490,7 +490,7 @@ public class GeneradorCodigoIntermedio {
                 //o es un identificador que sirve como retorno dentro de una funcion.
                 if (id.equalsIgnoreCase(ambiente.getNombre())) {
                     if (ambiente.getTipoAmbiente().equals("TK_PROCEDURE")) {
-                        errorSemantico("id", "El identificador no es valido");
+                        errorSemantico("id", "El identificador '" + id + "' no es valido");
                     } else if (ambiente.getTipoAmbiente().equals("TK_FUNCTION")) {
                         ambiente.setHasReturn(true);
                     }
@@ -500,28 +500,28 @@ public class GeneradorCodigoIntermedio {
                 }
                 //si no es ningun caso, todavia puede ser un identificador no declarado
                 if (type == null) {
-                    errorSemantico("id", "Identificador no declarado.");
+                    errorSemantico("id", "Identificador '" + id + "' no declarado.");
                 }
                 assignment_statement(id, type);
                 break;
             default:
                 if (ambiente.getParametros(id) != null) {
-                    if (ambiente.getClase(id).equalsIgnoreCase("procedimiento")){
-                    call_procedure_or_function(id);
-                    }else{
-                    //aca si es una funcion deberia liberarse 1 de memoria, que es reservado en call_procedure_or_function, 
-                    //ya que no se usa porque no es una asignacion, ni una llamada dentro de una expresion. 
-                    //call_procedure_or_function(id);
-                    //mepa += "LMEM 1\n";
-                    
-                    //Esto pasa por la definicion de la gramatica, explicar en el informe que no es bueno tratar a las funciones
-                    //y procedimientos de igual manera, ya que se usan en diferentes contextos.
-                    errorSemantico("bad_uso_funcion", "Llamada a funcion sin utilizar su valor de retorno.");
+                    if (ambiente.getClase(id).equalsIgnoreCase("procedimiento")) {
+                        call_procedure_or_function(id);
+                    } else {
+                        //aca si es una funcion deberia liberarse 1 de memoria, que es reservado en call_procedure_or_function, 
+                        //ya que no se usa porque no es una asignacion, ni una llamada dentro de una expresion. 
+                        //call_procedure_or_function(id);
+                        //mepa += "LMEM 1\n";
+
+                        //Esto pasa por la definicion de la gramatica, explicar en el informe que no es bueno tratar a las funciones
+                        //y procedimientos de igual manera, ya que se usan en diferentes contextos.
+                        errorSemantico("bad_uso_funcion", "Llamada a funcion sin utilizar su valor de retorno.");
                     }
                 } else {
                     errorSemantico("no_subrutina", "El identificador '" + id + "' no corresponde a una subrutina declarada.");
                 }
-                
+
                 break;
         }
     }
@@ -545,7 +545,9 @@ public class GeneradorCodigoIntermedio {
             match("TK_ASSIGN");
             String type2 = expression_or();
             if (!(type1.equalsIgnoreCase(type2))) {
-                errorSemantico("type", "Se esperaba un " + type1 + " pero se encontró " + type2);
+                errorSemantico("type", "se esperaba un " + TK2lexema(type1)
+                        + " pero se encontro un " + TK2lexema(type2)
+                );
             }
             mepa += "ALVL " + ambiente.getProfundidad(id) + " " + ambiente.getOffset(id) + "\n";
             //mepa += "ALVL " + id.toUpperCase() + "\n";
@@ -595,8 +597,14 @@ public class GeneradorCodigoIntermedio {
                 call_procedure_or_function_1(list);
                 boolean res = ambiente.equals(id, list);
                 if (!res) {
-                    errorSemantico("call", "La lista de parametros no coincide con la "
-                            + "definicion de la subrutina "+id);
+                    if (!ambiente.getParametros(id).isEmpty()) {
+                        errorSemantico("call", "La lista de parametros no coincide con la "
+                                + "definicion de la subrutina '" + id + "'. Se esperaban " + ambiente.getParametros(id).size() + " parametros: ("
+                                + param2lexema(ambiente.getParametros(id)) + ").");
+                    } else {
+                        errorSemantico("call", "La lista de parametros no coincide con la "
+                                + "definicion de la subrutina '" + id + "'. Se esperaban cero parametros.");
+                    }
                 }
                 if (ambiente.getClase(id).equals("funcion") || ambiente.getClase(id).equals("procedimiento")) {
                     mepa += "LLPR L" + ambiente.getLabel(id) + "\n";
@@ -609,7 +617,8 @@ public class GeneradorCodigoIntermedio {
             if (ambiente.getParametros(id) != null) {
                 if (!ambiente.getParametros(id).isEmpty()) {
                     errorSemantico("call", "La lista de parametros no coincide con la "
-                            + "definicion de la subrutina "+id);
+                            + "definicion de la subrutina '" + id + "'. Se esperaban " + ambiente.getParametros(id).size() + " parametros: ("
+                            + param2lexema(ambiente.getParametros(id)) + ").");
                 } else {
                     if (ambiente.getClase(id).equals("funcion")) {
                         mepa += "RMEM 1\n";
@@ -754,7 +763,7 @@ public class GeneradorCodigoIntermedio {
             match("TK_BOOL_OP_OR");
             String type2 = expression_and();
             if (!((type.equalsIgnoreCase(type2)) && type.equalsIgnoreCase("TK_TYPE_BOOL"))) {
-                errorSemantico("type", type + " y " + type2 + " no aplicables a operador OR");
+                errorSemantico(type, type2, "TK_BOOL_OP_OR");
             }
             mepa += "DISJ\n";
             type = "TK_TYPE_BOOL";
@@ -788,7 +797,7 @@ public class GeneradorCodigoIntermedio {
             match("TK_BOOL_OP_AND");
             String type2 = expression_rel();
             if (!((type.equalsIgnoreCase(type2)) && type.equalsIgnoreCase("TK_TYPE_BOOL"))) {
-                errorSemantico("type", type + " y " + type2 + " no aplicables a operador AND");
+                errorSemantico(type, type2, "TK_BOOL_OP_AND");
             }
             mepa += "CONJ\n";
             type = "TK_TYPE_BOOL";
@@ -838,7 +847,7 @@ public class GeneradorCodigoIntermedio {
                     case "TK_REL_OP_LEQ":
                     case "TK_REL_OP_GEQ":
                         if (!((type.equalsIgnoreCase(type2)) && (type.equalsIgnoreCase("TK_TYPE_INT")))) {
-                            errorSemantico("type", type + " y " + type2 + " no aplicables a operador " + op);
+                            errorSemantico(type, type2, op);
                         }
                         type = "TK_TYPE_BOOL";
                         break;
@@ -896,7 +905,7 @@ public class GeneradorCodigoIntermedio {
                 String op = addition_operator();
                 String type2 = expression_mult();
                 if (!((type.equalsIgnoreCase(type2)) && (type.equalsIgnoreCase("TK_TYPE_INT")))) {
-                    errorSemantico("type", type + " y " + type2 + " no aplicables a operador " + op);
+                    errorSemantico(type, type2, op);
                 }
                 switch (op) {
                     case "TK_ADD_OP_SUM":
@@ -940,7 +949,7 @@ public class GeneradorCodigoIntermedio {
                 String op = multiplication_operator();
                 String type2 = factor();
                 if (!((type.equalsIgnoreCase(type2)) && (type.equalsIgnoreCase("TK_TYPE_INT")))) {
-                    errorSemantico("type", type + " y " + type2 + " no aplicables a operador " + op);
+                    errorSemantico(type, type2, op);
                 }
                 switch (op) {
                     case "TK_MULT_OP_POR":
@@ -964,7 +973,7 @@ public class GeneradorCodigoIntermedio {
                 String id = identifier();
                 type = ambiente.getTipo(id);
                 if (type == null) {
-                    errorSemantico("id", "Identificador no declarado");
+                    errorSemantico("id", "Identificador '" + id + "' no declarado");
                 }
                 if (ambiente.getClase(id).equals("variable") || ambiente.getClase(id).equals("parametro")) {
                     mepa += "APVL " + ambiente.getProfundidad(id) + " " + ambiente.getOffset(id) + "\n";
@@ -988,17 +997,17 @@ public class GeneradorCodigoIntermedio {
                 type = factor();
                 switch (op) {
                     case "TK_ADD_OP_REST":
-                        if (!type.equalsIgnoreCase("TK_TYPE_BOOL")) {
-                            errorSemantico("type", type + " no aplicables a operador " + op);
+                        if (!type.equalsIgnoreCase("TK_TYPE_INT")) {
+                            errorSemantico(type, null, op);
                         }
-                        type = "TK_TYPE_BOOL";
+                        type = "TK_TYPE_INT";
                         mepa += "UMEN\n";
                         break;
                     case "TK_NOT_OP":
-                        if (!type.equalsIgnoreCase("TK_TYPE_INT")) {
-                            errorSemantico("type", type + " no aplicables a operador " + op);
+                        if (!type.equalsIgnoreCase("TK_TYPE_BOOL")) {
+                            errorSemantico(type, null, op);
                         }
-                        type = "TK_TYPE_INT";
+                        type = "TK_TYPE_BOOL";
                         mepa += "NEGA\n";
                         break;
                 }
@@ -1192,6 +1201,100 @@ public class GeneradorCodigoIntermedio {
      *
      * @param term
      */
+    private void errorSemantico(String type1, String type2, String op) {
+        op = TK2lexema(op);
+        if (type1 != null) {
+            type1 = TK2lexema(type1);
+            if (type2 != null) {
+                type2 = TK2lexema(type2);
+                throw new RuntimeException("semantico", new Throwable("\nError semantico: linea " + lexico.getNroLinea()
+                        + ".\n" + type1 + " y " + type2 + " no aplicables a operador " + op + "."));
+            } else {
+                throw new RuntimeException("semantico", new Throwable("\nError semantico: linea " + lexico.getNroLinea()
+                        + ".\n" + type1 + " no aplicable a operador " + op + "."));
+            }
+        }
+    }
+
+    private String param2lexema(LinkedList<String> tkParametros) {
+        String res = "";
+        for (int i = 0; i < tkParametros.size(); i++) {
+            res += TK2lexema(tkParametros.get(i)) + ", ";
+        }
+        if (res.length() > 2) {
+            res = res.substring(0, res.length() - 2);
+        }
+        return res;
+    }
+
+    /**
+     * Recibe un Token y devuelve el lexema correspondiente, para imprimir los
+     * mensajes de error
+     *
+     * @param tk
+     * @return
+     */
+    private String TK2lexema(String tk) {
+        switch (tk) {
+            case "TK_TYPE_INT":
+                tk = "integer";
+                break;
+            case "TK_TYPE_BOOL":
+                tk = "boolean";
+                break;
+            case "TK_ASSIGN":
+                tk = "asignacion";
+                break;
+            case "TK_REL_OP_EQ":
+                tk = "=";
+                break;
+            case "TK_REL_OP_NEQ":
+                tk = "<>";
+                break;
+            case "TK_REL_OP_MIN":
+                tk = "<";
+                break;
+            case "TK_REL_OP_MAY":
+                tk = ">";
+                break;
+            case "TK_REL_OP_LEQ":
+                tk = "<=";
+                break;
+            case "TK_REL_OP_GEQ":
+                tk = ">=";
+                break;
+            case "TK_ADD_OP_SUM":
+                tk = "+";
+                break;
+            case "TK_ADD_OP_REST":
+                tk = "-";
+                break;
+            case "TK_MULT_OP_POR":
+                tk = "*";
+                break;
+            case "TK_MULT_OP_DIV":
+                tk = "/";
+                break;
+            case "TK_BOOL_OP_AND":
+                tk = "AND";
+                break;
+            case "TK_BOOL_OP_OR":
+                tk = "OR";
+                break;
+            case "TK_NOT_OP":
+                tk = "NOT";
+                break;
+            case "TK_END":
+                tk = "end";
+        }
+        return tk;
+    }
+
+    /**
+     * Lanza un RuntimeException("semantico", Causa).
+     *
+     * @param term
+     */
     private void errorSemantico(String term, String msg) {
         if (term.equals("unicidad")) {
             throw new RuntimeException("semantico", new Throwable("\nError semantico: linea " + lexico.getNroLinea()
@@ -1216,7 +1319,7 @@ public class GeneradorCodigoIntermedio {
         } else {
             msj = new Throwable("\nError sintactico: linea " + lexico.getNroLinea()
                     + " posicion " + (lexico.getPos() + 1) + ".\nSimbolo '" + preanalisis.getValor()
-                    + "' no esperado. Se esperaba " + term + ".");
+                    + "' no esperado. Se esperaba " + TK2lexema(term) + ".");
         }
         throw new RuntimeException("sintactico", msj);
     }
