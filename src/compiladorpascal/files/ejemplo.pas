@@ -17,7 +17,7 @@ Program Example5;
      f1:=f2
     end;
 
-procedure pr(t:boolean);
+procedure pr(d:integer; t,b:integer; c:boolean);
 var a: integer;
 begin
 if(true)then
@@ -26,7 +26,7 @@ else
     a:=4
 end;
 Begin
-    pr;
+    pr(num1, num1, 3);
     num1:=f1;
     write(num1)
 End.

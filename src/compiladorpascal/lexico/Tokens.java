@@ -1,6 +1,7 @@
 package compiladorpascal.lexico;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 
 /**
  * Generador de conjuntos de tokens del lenguaje Pascal.
@@ -68,4 +69,77 @@ public class Tokens {
         return tokens;
     }
 
+       public static String parametrosALexema(LinkedList<String> tkParametros) {
+        String res = "";
+        for (int i = 0; i < tkParametros.size(); i++) {
+            res += tokenALexema(tkParametros.get(i)) + ", ";
+        }
+        if (res.length() > 2) {
+            res = res.substring(0, res.length() - 2);
+        }
+        return res;
+    }
+
+    /**
+     * Recibe un Token y devuelve el lexema correspondiente, para imprimir los
+     * mensajes de error
+     *
+     * @param tk
+     * @return
+     */
+    public static String tokenALexema(String tk) {
+        switch (tk) {
+            case "TK_TYPE_INT":
+                tk = "integer";
+                break;
+            case "TK_TYPE_BOOL":
+                tk = "boolean";
+                break;
+            case "TK_ASSIGN":
+                tk = "asignacion";
+                break;
+            case "TK_REL_OP_EQ":
+                tk = "=";
+                break;
+            case "TK_REL_OP_NEQ":
+                tk = "<>";
+                break;
+            case "TK_REL_OP_MIN":
+                tk = "<";
+                break;
+            case "TK_REL_OP_MAY":
+                tk = ">";
+                break;
+            case "TK_REL_OP_LEQ":
+                tk = "<=";
+                break;
+            case "TK_REL_OP_GEQ":
+                tk = ">=";
+                break;
+            case "TK_ADD_OP_SUM":
+                tk = "+";
+                break;
+            case "TK_ADD_OP_REST":
+                tk = "-";
+                break;
+            case "TK_MULT_OP_POR":
+                tk = "*";
+                break;
+            case "TK_MULT_OP_DIV":
+                tk = "/";
+                break;
+            case "TK_BOOL_OP_AND":
+                tk = "AND";
+                break;
+            case "TK_BOOL_OP_OR":
+                tk = "OR";
+                break;
+            case "TK_NOT_OP":
+                tk = "NOT";
+                break;
+            case "TK_END":
+                tk = "end";
+        }
+        return tk;
+    }
 }
