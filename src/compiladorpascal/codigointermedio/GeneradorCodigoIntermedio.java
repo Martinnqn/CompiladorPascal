@@ -508,8 +508,6 @@ public class GeneradorCodigoIntermedio {
                         //call_procedure_or_function(id);
                         //mepa += "LMEM 1\n";
 
-                        //Esto pasa por la definicion de la gramatica, explicar en el informe que no es bueno tratar a las funciones
-                        //y procedimientos de igual manera, ya que se usan en diferentes contextos.
                         errorSemantico("bad_uso_funcion", "Llamada a funcion sin utilizar su valor de retorno.");
                     }
                 } else {
